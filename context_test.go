@@ -1,7 +1,9 @@
 package celerity
 
 import (
+	"bytes"
 	"errors"
+	"net/http"
 	"net/url"
 	"testing"
 )
@@ -75,5 +77,18 @@ func TestQueryParams(t *testing.T) {
 	}
 	if v := c.QueryParams.Int("user"); v != 1 {
 		t.Errorf("name param not correct: %d", v)
+	}
+}
+
+func TestHeader(t *testing.T) {
+	c := NewContext()
+	if r, err := http.NewRequest("GET", "/", bytes.NewBuffer(nil)); err != nil {
+		t.Fatal(err.Error())
+	} else {
+		c.Request = r
+	}
+	c.Request.Header.Set("test-header", "header-value")
+	if c.Header("test-header") != "header-value" {
+		t.Error("header value incorrect")
 	}
 }

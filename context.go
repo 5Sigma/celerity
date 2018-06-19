@@ -29,8 +29,8 @@ func NewContext() Context {
 }
 
 // Header - Request headers
-func (c *Context) Header() http.Header {
-	return c.Request.Header
+func (c *Context) Header(key string) string {
+	return c.Request.Header.Get(key)
 }
 
 // Set - Set an arbitrary value in the context

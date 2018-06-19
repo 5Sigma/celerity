@@ -10,7 +10,7 @@ import (
 	"github.com/5Sigma/celerity"
 )
 
-// TestServer - A test server instance
+// TestServer - A test server instances
 type TestServer struct {
 	Server *celerity.Server
 }

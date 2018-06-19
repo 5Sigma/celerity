@@ -4,13 +4,20 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-// Response - A response form the test server
+// Response is returend when a request is made against the test server It
+// contains helper methods to validate the resulting JSON and check things
+// like the HTTP status.
 type Response struct {
 	StatusCode int
 	Data       string
 }
 
-// AssertString - Assert a string value in the data
+// AssertString checks a string value in the returning JSON at a given path.
+//
+// 		r := celeritytest.Get(svr, "/foo")
+// 		if ok, v := r.AssertString("data.firstName", "alice"); !ok {
+// 			t.Errrof("first name not returned correctly: %s", v)
+// 		}
 func (r *Response) AssertString(path, value string) (bool, string) {
 	v := gjson.Get(r.Data, path)
 	if !v.Exists() {
@@ -22,7 +29,12 @@ func (r *Response) AssertString(path, value string) (bool, string) {
 	return true, v.String()
 }
 
-// AssertBool - Assert a string value in the data
+// AssertBool checks a boolean value in the returning JSON at a given path.
+//
+// 		r := celeritytest.Get(svr, "/foo")
+// 		if ok, _ := r.AssertBool("data.isAdmin", ); !ok {
+// 			t.Errrof("admin should be true")
+// 		}
 func (r *Response) AssertBool(path string, value bool) (bool, bool) {
 	v := gjson.Get(r.Data, path)
 	if !v.Exists() {
@@ -34,7 +46,12 @@ func (r *Response) AssertBool(path string, value bool) (bool, bool) {
 	return true, v.Bool()
 }
 
-// AssertInt - Assert a int value in the data
+// AssertInt checks an integer value in the returning JSON at a given path.
+//
+// 		r := celeritytest.Get(svr, "/foo")
+// 		if ok, v := r.AssertString("data.age", 19); !ok {
+// 			t.Errrof("age was not returned correctly: %d", v)
+// 		}
 func (r *Response) AssertInt(path string, value int) (bool, int) {
 	v := gjson.Get(r.Data, path)
 	if !v.Exists() {

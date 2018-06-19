@@ -10,12 +10,37 @@ import (
 	"github.com/5Sigma/celerity"
 )
 
-// TestServer - A test server instances
+//Post creates a TestServer for the given celerity.Server and makes a POST
+//request against it using the TestServer.Post function.
+func Post(s *celerity.Server, path string, data []byte) (*Response, error) {
+	svr := &TestServer{s}
+	return svr.Post(path, data)
+}
+
+//Get creates a TestServer for the given celerity.Server and makes a GET
+//request against it using the TestServer.Get function.
+func Get(s *celerity.Server, path string) (*Response, error) {
+	svr := &TestServer{s}
+	return svr.Get(path)
+}
+
+//Request creates a TestServer for the given celerity.Server and makes a
+//request against it using the TestServer.Request function.
+func Request(s *celerity.Server, opts RequestOptions) (*Response, error) {
+	svr := &TestServer{s}
+	return svr.Request(opts)
+}
+
+// TestServer can be used to make calls against a managed test
+// version of the http server. This is internally used by the Request, Get, and
+// Post package level functions.
 type TestServer struct {
 	Server *celerity.Server
 }
 
-// RequestOptions - options for the request to the server
+// RequestOptions are used by the TestServer.Request function can
+// be used with a RequestOptions structure when more advanced request
+// customization is needed. Such as configuring headers.
 type RequestOptions struct {
 	Method string
 	Path   string
@@ -23,13 +48,9 @@ type RequestOptions struct {
 	Data   []byte
 }
 
-//Post - Make a GET request against a given server
-func Post(s *celerity.Server, path string, data []byte) (*Response, error) {
-	svr := &TestServer{s}
-	return svr.Post(path, data)
-}
-
-//Post - Make a POST request to a test server and return a query response
+// Post makes a POST request against the test server. This function is called
+// by the package level Post function in cases where you want to make a one off
+// request.
 func (ts *TestServer) Post(path string, data []byte) (*Response, error) {
 	httpServer := httptest.NewServer(ts.Server)
 	defer httpServer.Close()
@@ -49,13 +70,9 @@ func (ts *TestServer) Post(path string, data []byte) (*Response, error) {
 	return response, err
 }
 
-//Get - Make a GET request against a given server
-func Get(s *celerity.Server, path string) (*Response, error) {
-	svr := &TestServer{s}
-	return svr.Get(path)
-}
-
-//Get - Make a GET request to a test server and return a query response
+// Get - Makes a GET request against the test server. This function is called
+// by the package level Get function in cases where you want to make a one off
+// request.
 func (ts *TestServer) Get(path string) (*Response, error) {
 	httpServer := httptest.NewServer(ts.Server)
 	defer httpServer.Close()
@@ -75,13 +92,10 @@ func (ts *TestServer) Get(path string) (*Response, error) {
 	return response, err
 }
 
-// Request - Make a request against the server using a Request object
-func Request(s *celerity.Server, opts RequestOptions) (*Response, error) {
-	svr := &TestServer{s}
-	return svr.Request(opts)
-}
-
-// Request - Make a request against the server using a Request object
+// Request makes a request against the test server. This function is called by
+// the package level Request function for one off requests.  This function can
+// be used for more customization when making requests than the Get and Post
+// functions provide.
 func (ts *TestServer) Request(reqOpts RequestOptions) (*Response, error) {
 	httpServer := httptest.NewServer(ts.Server)
 	defer httpServer.Close()

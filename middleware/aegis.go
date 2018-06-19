@@ -16,7 +16,7 @@ type AegisConfig struct {
 func Aegis(config AegisConfig) celerity.MiddlewareHandler {
 	return func(next celerity.RouteHandler) celerity.RouteHandler {
 		return func(c celerity.Context) celerity.Response {
-			sessionToken := c.Header().Get("Authorization")
+			sessionToken := c.Header("Authorization")
 			if !config.Adapter.ValidateSession(c, sessionToken) {
 				return celerity.NewErrorResponse(401, "Session invalid")
 			}

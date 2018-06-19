@@ -76,3 +76,48 @@ func TestAssertBool(t *testing.T) {
 		}
 	}
 }
+
+func TestGetLength(t *testing.T) {
+	{
+		l := mockResponse.GetLength("data.people")
+		if l != 2 {
+			t.Errorf("length was not correct: %d", l)
+		}
+	}
+}
+
+func TestExists(t *testing.T) {
+	{
+		if !mockResponse.Exists("data.people") {
+			t.Error("data.people should exist")
+		}
+		if mockResponse.Exists("data.nothing") {
+			t.Error("data.nothing should not exist")
+		}
+	}
+}
+
+func TestExtract(t *testing.T) {
+	r := struct {
+		Success bool `json:"success"`
+	}{}
+	mockResponse.Extract(&r)
+	if r.Success != true {
+		t.Error("values not extracted properly")
+	}
+}
+
+func TestExtractAt(t *testing.T) {
+	r := []struct {
+		FirstName string `json:"firstName"`
+		LastName  string `json:"lastName"`
+		Age       int    `json:"age"`
+	}{}
+	mockResponse.ExtractAt("data.people", &r)
+	if len(r) != 2 {
+		t.Fatal("incorrect number of items in the array")
+	}
+	if r[0].FirstName != "Alice" {
+		t.Error("values not extracted properly")
+	}
+}

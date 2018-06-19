@@ -69,7 +69,7 @@ func TestHeaders(t *testing.T) {
 	s.Route(celerity.GET, "/foo", func(c celerity.Context) celerity.Response {
 		req := struct {
 			Param1 string `json:"param1"`
-		}{Param1: c.Header().Get("Test-Header")}
+		}{Param1: c.Header("Test-Header")}
 		return c.R(req)
 	})
 

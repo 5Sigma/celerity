@@ -85,3 +85,8 @@ func (r *Response) ExtractAt(path string, obj interface{}) error {
 	raw := gjson.Get(r.Data, path).Raw
 	return json.Unmarshal([]byte(raw), &obj)
 }
+
+// GetResult returns a result object at a given path.
+func (r *Response) GetResult(path string) gjson.Result {
+	return gjson.Get(r.Data, path)
+}

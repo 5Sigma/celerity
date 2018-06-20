@@ -2,6 +2,7 @@ package celerity
 
 import (
 	"fmt"
+	"net/http"
 	"testing"
 )
 
@@ -11,12 +12,18 @@ func emptyHandler(c Context) Response {
 
 func TestScopeRoute(t *testing.T) {
 	{
+		req, _ := http.NewRequest(GET, "/users", nil)
 		scope := newScope("/")
 		scope.Route(GET, "/users", emptyHandler)
-		if !scope.Match("/users") {
+		if !scope.Match(req, req.URL.Path) {
 			t.Error("scope did not match valid path")
 		}
-		if scope.Match("/bad") {
+	}
+	{
+		req, _ := http.NewRequest(GET, "/bad", nil)
+		scope := newScope("/")
+		scope.Route(GET, "/users", emptyHandler)
+		if scope.Match(req, req.URL.Path) {
 			t.Error("scope did match invalid path")
 		}
 	}
@@ -24,14 +31,17 @@ func TestScopeRoute(t *testing.T) {
 		scope := newScope("/")
 		sub := scope.Scope("/users")
 		sub.Route(GET, "/:id", emptyHandler)
-		if !scope.Match("/users/1") {
-			t.Error("scope did not match valid path")
+		{
+			req, _ := http.NewRequest(GET, "/users/1", nil)
+			if !scope.Match(req, req.URL.Path) {
+				t.Error("scope did not match valid path")
+			}
 		}
-		if scope.Match("/bad") {
-			t.Error("scope did match invalid path")
-		}
-		if scope.Match("/users/1/bad") {
-			t.Error("scope did match invalid path")
+		{
+			req, _ := http.NewRequest(GET, "/users/1/abd", nil)
+			if scope.Match(req, req.URL.Path) {
+				t.Error("scope did match invalid path")
+			}
 		}
 	}
 }
@@ -43,13 +53,41 @@ func TestScopeHandle(t *testing.T) {
 			return c.R("test")
 		})
 		c := NewContext()
-		r := scope.Handle(c, "/users")
+		req, _ := http.NewRequest(GET, "/users", nil)
+		r := scope.Handle(c, req)
 		v, ok := r.Data.(string)
 		if !ok {
 			t.Error("Data result incorrect type")
 			return
 		} else if v != "test" {
 			t.Error("Data result not correct")
+		}
+	}
+}
+
+func TestMethodRouting(t *testing.T) {
+	{
+		scope := newScope("/")
+		scope.Route(GET, "/users", func(c Context) Response {
+			return c.R("test")
+		})
+		c := NewContext()
+		req, _ := http.NewRequest(GET, "/users", nil)
+		r := scope.Handle(c, req)
+		if r.StatusCode != 200 {
+			t.Error("Non 200 response code for valid method/path")
+		}
+	}
+	{
+		scope := newScope("/")
+		scope.Route(POST, "/users", func(c Context) Response {
+			return c.R("test")
+		})
+		c := NewContext()
+		req, _ := http.NewRequest(GET, "/users", nil)
+		r := scope.Handle(c, req)
+		if r.StatusCode != 404 {
+			t.Error("Non 404 response code for invalid method/path")
 		}
 	}
 }
@@ -62,7 +100,8 @@ func BenchmarkScopeRoute(b *testing.B) {
 	}
 	scope.Route("GET", "ep", emptyHandler)
 	for n := 0; n < b.N; n++ {
-		scope.Match("/0/1/2/3/4/5/6/7/8/9/ep")
+		req, _ := http.NewRequest(GET, "/0/1/2/3/4/5/6/7/8/9/ep", nil)
+		scope.Match(req, req.URL.Path)
 	}
 }
 
@@ -76,7 +115,8 @@ func TestScopeCollision(t *testing.T) {
 		return c.R("test")
 	})
 	c := NewContext()
-	r := root.Handle(c, "/users/get")
+	req, _ := http.NewRequest(GET, "/users/get", nil)
+	r := root.Handle(c, req)
 	v, ok := r.Data.(string)
 	if !ok {
 		t.Error("Data result incorrect type")
@@ -101,7 +141,8 @@ func TestMiddleware(t *testing.T) {
 		return c.R("bad")
 	})
 	c := NewContext()
-	r := root.Handle(c, "/middleware")
+	req, _ := http.NewRequest(GET, "/middleware", nil)
+	r := root.Handle(c, req)
 	v, ok := r.Data.(string)
 	if !ok {
 		t.Error("Data result incorrect type")

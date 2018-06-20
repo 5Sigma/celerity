@@ -29,7 +29,7 @@ func TestPost(t *testing.T) {
 		return c.R(map[string]string{"param1": "123"})
 	})
 
-	r, err := Post(s, "/foo", nil)
+	r, err := Get(s, "/foo")
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -41,7 +41,7 @@ func TestPost(t *testing.T) {
 
 func TestRequest(t *testing.T) {
 	s := celerity.New()
-	s.Route(celerity.GET, "/foo", func(c celerity.Context) celerity.Response {
+	s.Route(celerity.POST, "/foo", func(c celerity.Context) celerity.Response {
 		req := struct {
 			Param1 string `json:"param1"`
 		}{}
@@ -66,7 +66,7 @@ func TestRequest(t *testing.T) {
 
 func TestHeaders(t *testing.T) {
 	s := celerity.New()
-	s.Route(celerity.GET, "/foo", func(c celerity.Context) celerity.Response {
+	s.Route(celerity.POST, "/foo", func(c celerity.Context) celerity.Response {
 		req := struct {
 			Param1 string `json:"param1"`
 		}{Param1: c.Header("Test-Header")}

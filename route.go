@@ -12,7 +12,7 @@ type Route struct {
 type RouteHandler func(Context) Response
 
 // Match - Matches the routes path against the incomming url
-func (r *Route) Match(path string) bool {
+func (r *Route) Match(method, path string) bool {
 	ok, xtra := r.Path.Match(path)
-	return (ok && xtra == "")
+	return (ok && xtra == "" && method == r.Method)
 }

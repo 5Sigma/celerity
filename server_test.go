@@ -151,7 +151,7 @@ func TestRewrite(t *testing.T) {
 
 func TestDataExtration(t *testing.T) {
 	server := New()
-	server.Router.Route("GET", "/foo", func(c Context) Response {
+	server.Router.Route(POST, "/foo", func(c Context) Response {
 		req := struct {
 			Name string `json:"name"`
 		}{}

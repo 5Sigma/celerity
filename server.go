@@ -31,7 +31,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	c.Request = r
 	c.SetQueryParamsFromURL(r.URL)
-	resp := s.Router.Handle(c, r.URL.Path)
+	resp := s.Router.Handle(c, r)
 	b, err := s.ResponseAdapter.Process(c, resp)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

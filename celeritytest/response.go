@@ -1,6 +1,8 @@
 package celeritytest
 
 import (
+	"encoding/json"
+
 	"github.com/tidwall/gjson"
 )
 
@@ -61,4 +63,25 @@ func (r *Response) AssertInt(path string, value int) (bool, int) {
 		return false, int(v.Int())
 	}
 	return true, int(v.Int())
+}
+
+// GetLength returns the length of an array in a at a given JSON path.
+func (r *Response) GetLength(path string) int {
+	return len(gjson.Get(r.Data, path).Array())
+}
+
+// Exists checks if a value exists at a given JSON path
+func (r *Response) Exists(path string) bool {
+	return gjson.Get(r.Data, path).Exists()
+}
+
+// Extract unmarshals the JSON into a struct
+func (r *Response) Extract(obj interface{}) error {
+	return json.Unmarshal([]byte(r.Data), &obj)
+}
+
+// ExtractAt Unmarshals JSON at a path into a struct.
+func (r *Response) ExtractAt(path string, obj interface{}) error {
+	raw := gjson.Get(r.Data, path).Raw
+	return json.Unmarshal([]byte(raw), &obj)
 }

@@ -38,17 +38,17 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
-// Use - Use a middleware in the root scope
+// Use - Use a middleware in the root scope.
 func (s *Server) Use(mw MiddlewareHandler) {
 	s.Router.Root.Use(mw)
 }
 
-// Start the server
+// Start the server.
 func (s *Server) Start(host string) error {
 	return http.ListenAndServe(host, s)
 }
 
-// Route - Set a route on the root scope
+// Route - Set a route on the root scope.
 func (s *Server) Route(method, path string, h RouteHandler) {
 	s.Router.Root.Route(method, path, h)
 }

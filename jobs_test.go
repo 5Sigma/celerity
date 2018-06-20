@@ -71,3 +71,36 @@ func TestRunAt(t *testing.T) {
 		t.Error("job did not run")
 	}
 }
+
+func TestRunLater(t *testing.T) {
+	lt := newLocalTransport()
+	transport = lt
+	MockJobResult = 0
+	RunLater(MockJob{}, time.Millisecond*10)
+	if MockJobResult != 0 {
+		t.Error("job ran too fast")
+	}
+	time.Sleep(20)
+	lt.JobManager.CheckSchedule()
+	lt.JobManager.Pool.WaitForAll()
+	if MockJobResult != 1 {
+		t.Error("job did not run")
+	}
+}
+
+func TestJobInstanceTick(t *testing.T) {
+	startTime := time.Now().Round(time.Second)
+	ji := jobInstance{
+		RunCount: 2,
+		StartAt:  startTime,
+		Interval: 10 * time.Second,
+	}
+	ji.Tick()
+	if ji.RunCount != 1 {
+		t.Errorf("runcount should decrease to 1, was %d", ji.RunCount)
+	}
+	if ji.StartAt.Round(time.Second) != startTime.Add(10*time.Second).Round(time.Second) {
+		t.Errorf("StartAt should be set to %v, was %v",
+			startTime.Add(10*time.Second), ji.StartAt)
+	}
+}

@@ -10,19 +10,53 @@ import (
 // Transport the currently active job transport
 var transport = newLocalTransport()
 
-// Job is a struct that represents a asyncronous job that can be executed. A job
-// must be a struct that implements the job interface.
+/*
+Job is an interface that can be implemented to run work asyncronously using
+the celerity job pool.
+
+Impementing a job
+
+To create a Job that can be executed via the Job pool it must impement the Run
+function.
+
+		Run() error
+
+The Job itself must be registered with the Job pool prior to being used.
+
+		celerity.RegisterJob(&MyJob{})
+
+A simple example
+
+The following is a simplified example of a running a Job.
+
+		type MyJob struct {}
+
+		func (j MyJob) Run() error {
+			return nil
+		}
+
+		celerity.RegisterJob(&MyJob{})
+
+		job := MyJob{}
+
+		celerity.Run(MyJob)
+
+As a general pattern it is a good idea to put all your Jobs in a seperate
+package and register each one when you bootstrap the celerity server.
+
+*/
 type Job interface {
 	Run() error
 }
 
-// RegisterJob registers a new job struct that can be used to perform
-// asyncronous or scheduled work.
-func RegisterJob(job interface{}) {
+// RegisterJob registers a new job for the job pool. Jobs must be registered
+// before they can be added to the queue.
+func RegisterJob(job Job) {
 	gob.Register(job)
 }
 
-// RunNow runs a job immediately.
+// RunNow will queue a job to run immediately. It will be added to the queue and
+// scheduled to run when the next worker is available.
 func RunNow(job Job) {
 	ji := jobInstance{
 		Job:      job,
@@ -32,7 +66,8 @@ func RunNow(job Job) {
 	transport.Run(ji)
 }
 
-// RunAt runs a job at a specific time
+// RunAt will run the job at a specifc time. The job will be executed when a
+// worker is available after the time has past.
 func RunAt(job Job, t time.Time) {
 	ji := jobInstance{
 		Job:      job,
@@ -42,7 +77,8 @@ func RunAt(job Job, t time.Time) {
 	transport.Run(ji)
 }
 
-// RunLater runs a job after a certain amount of time has passed
+// RunLater schedules a job to execute after a specified amount of time. The job
+// will be executed when  a worker is available and the duration has ellapsed.
 func RunLater(job Job, d time.Duration) {
 	ji := jobInstance{
 		Job:      job,

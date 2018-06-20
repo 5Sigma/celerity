@@ -46,25 +46,25 @@ func (s *Scope) Use(mf ...MiddlewareHandler) {
 }
 
 // Match - Check if the scope can handle the incomming url
-func (s *Scope) Match(path string) bool {
+func (s *Scope) Match(req *http.Request, path string) bool {
 	ok, rPath := s.Path.Match(path)
 	if !ok {
 		return false
 	}
 	for _, r := range s.Routes {
-		if r.Match(rPath) {
+		if r.Match(req.Method, rPath) {
 			return true
 		}
 	}
 	for _, ss := range s.Scopes {
-		if ss.Match(rPath) {
+		if ss.Match(req, rPath) {
 			return true
 		}
 	}
 	return false
 }
 
-func (s *Scope) handleWithMiddleware(c Context, path string, middleware []MiddlewareHandler) Response {
+func (s *Scope) handleWithMiddleware(c Context, req *http.Request, path string, middleware []MiddlewareHandler) Response {
 	ok, rPath := s.Path.Match(path)
 	if !ok {
 		return NewErrorResponse(http.StatusNotFound, "The requested resource was not found")
@@ -73,7 +73,7 @@ func (s *Scope) handleWithMiddleware(c Context, path string, middleware []Middle
 	middleware = append(middleware, s.Middleware...)
 
 	for _, r := range s.Routes {
-		if r.Match(rPath) {
+		if r.Match(req.Method, rPath) {
 			c.SetParams(r.Path.GetURLParams(path))
 			var h RouteHandler
 			h = r.Handler
@@ -84,14 +84,14 @@ func (s *Scope) handleWithMiddleware(c Context, path string, middleware []Middle
 		}
 	}
 	for _, ss := range s.Scopes {
-		if ss.Match(rPath) {
-			return ss.handleWithMiddleware(c, rPath, middleware)
+		if ss.Match(req, rPath) {
+			return ss.handleWithMiddleware(c, req, rPath, middleware)
 		}
 	}
 	return NewErrorResponse(http.StatusNotFound, "The requested resource was not found")
 }
 
 // Handle - Handle an incomming URL
-func (s *Scope) Handle(c Context, path string) Response {
-	return s.handleWithMiddleware(c, path, []MiddlewareHandler{})
+func (s *Scope) Handle(c Context, req *http.Request) Response {
+	return s.handleWithMiddleware(c, req, req.URL.Path, []MiddlewareHandler{})
 }

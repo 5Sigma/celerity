@@ -121,3 +121,15 @@ func TestExtractAt(t *testing.T) {
 		t.Error("values not extracted properly")
 	}
 }
+
+func TestGetResult(t *testing.T) {
+	if mockResponse.GetResult("success").Bool() != true {
+		t.Error("bool value not returned correctly.")
+	}
+	if mockResponse.GetResult("data.people.0.firstName").String() != "Alice" {
+		t.Error("string value not returned correctly.")
+	}
+	if mockResponse.GetResult("data.people.1.age").Int() != 21 {
+		t.Error("int value not returned correctly.")
+	}
+}

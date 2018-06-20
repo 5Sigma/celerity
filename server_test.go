@@ -116,6 +116,39 @@ func TestNotFound(t *testing.T) {
 	res.Body.Close()
 }
 
+func TestRewrite(t *testing.T) {
+	server := New()
+	server.Router.Route("GET", "/users/:id/profile", func(c Context) Response {
+		return c.R(map[string]interface{}{"id": c.URLParams.Int("id")})
+	})
+
+	server.Rewrite(RewriteRules{
+		"/people/(.*)/profile": "/users/$1/profile",
+	})
+
+	ts := httptest.NewServer(server)
+	defer ts.Close()
+
+	res, err := http.Get(ts.URL + "/people/3/profile")
+	if err != nil {
+		t.Errorf("Error requesting url: %s", err.Error())
+	}
+
+	bbody, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		t.Errorf("Error reading response: %s", err.Error())
+	}
+	sbody := string(bbody)
+	expected := `{"requestId":"","success":true,"error":"","data":{"id":3},"meta":{}}`
+	if sbody != expected {
+		t.Errorf("Response not formatted correctly:\n%s\n%s", expected, string(sbody))
+	}
+	if res.StatusCode != 200 {
+		t.Errorf("Status code should be 200 was %d", res.StatusCode)
+	}
+	res.Body.Close()
+}
+
 func TestDataExtration(t *testing.T) {
 	server := New()
 	server.Router.Route("GET", "/foo", func(c Context) Response {
@@ -183,5 +216,26 @@ func BenchmarkMiddleware(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		res, _ := http.Get(ts.URL + "/foo/13")
 		res.Body.Close()
+	}
+}
+
+func TestRewriteRulesMatch(t *testing.T) {
+	rr := RewriteRules{
+		"/people/(.*)/profile": "/users/$1/profile",
+	}
+	{
+		ok, newPath := rr.Match("/people/3/profile")
+		if !ok {
+			t.Error("did not match path")
+		}
+		if newPath != "/users/3/profile" {
+			t.Errorf("transformed path not correct: %s", newPath)
+		}
+	}
+	{
+		ok, _ := rr.Match("/peoples/3/profile")
+		if ok {
+			t.Error("should not match bad path")
+		}
 	}
 }

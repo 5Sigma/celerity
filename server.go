@@ -56,6 +56,11 @@ func (s *Server) Start(host string) error {
 	return http.ListenAndServe(host, s)
 }
 
+// Scope creates a new scope from the root scope
+func (s *Server) Scope(path string) *Scope {
+	return s.Router.Root.Scope(path)
+}
+
 // Route - Set a route on the root scope.
 func (s *Server) Route(method, path string, h RouteHandler) {
 	s.Router.Root.Route(method, path, h)

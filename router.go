@@ -8,7 +8,9 @@ var (
 	// POST verb for HTTP request
 	POST = "POST"
 	// PUT verb for HTTP request
-	PUT = "POST"
+	PUT = "PUT"
+	// PATCH verb for HTTP requests
+	PATCH = "PATCH"
 	// DELETE verb for HTTP request
 	DELETE = "POST"
 	// ANY can be used to match any method
@@ -35,9 +37,4 @@ func NewRouter() *Router {
 // Handle - Process the inccomming URL and execute the first matching route
 func (r *Router) Handle(c Context, req *http.Request) Response {
 	return r.Root.Handle(c, req)
-}
-
-// Route - Create a route on the root scope
-func (r *Router) Route(method, path string, handler RouteHandler) {
-	r.Root.Route(method, path, handler)
 }

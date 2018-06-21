@@ -92,6 +92,69 @@ func TestMethodRouting(t *testing.T) {
 	}
 }
 
+func TestMethodAliases(t *testing.T) {
+	{
+		scope := newScope("/")
+		scope.GET("/get", func(c Context) Response {
+			return c.R("test")
+		})
+		c := NewContext()
+		req, _ := http.NewRequest(GET, "/get", nil)
+		r := scope.Handle(c, req)
+		if r.StatusCode != 200 {
+			t.Error("Non 200 response code for valid method/path")
+		}
+	}
+	{
+		scope := newScope("/")
+		scope.PUT("/put", func(c Context) Response {
+			return c.R("test")
+		})
+		c := NewContext()
+		req, _ := http.NewRequest(PUT, "/put", nil)
+		r := scope.Handle(c, req)
+		if r.StatusCode != 200 {
+			t.Error("Non 200 response code for valid method/path")
+		}
+	}
+	{
+		scope := newScope("/")
+		scope.DELETE("/delete", func(c Context) Response {
+			return c.R("test")
+		})
+		c := NewContext()
+		req, _ := http.NewRequest(DELETE, "/delete", nil)
+		r := scope.Handle(c, req)
+		if r.StatusCode != 200 {
+			t.Error("Non 200 response code for valid method/path")
+		}
+	}
+	{
+		scope := newScope("/")
+		scope.PATCH("/patch", func(c Context) Response {
+			return c.R("test")
+		})
+		c := NewContext()
+		req, _ := http.NewRequest(PATCH, "/patch", nil)
+		r := scope.Handle(c, req)
+		if r.StatusCode != 200 {
+			t.Error("Non 200 response code for valid method/path")
+		}
+	}
+	{
+		scope := newScope("/")
+		scope.POST("/post", func(c Context) Response {
+			return c.R("test")
+		})
+		c := NewContext()
+		req, _ := http.NewRequest(POST, "/post", nil)
+		r := scope.Handle(c, req)
+		if r.StatusCode != 200 {
+			t.Error("Non 200 response code for valid method/path")
+		}
+	}
+}
+
 func BenchmarkScopeRoute(b *testing.B) {
 	root := newScope("/")
 	scope := root

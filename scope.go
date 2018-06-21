@@ -29,6 +29,31 @@ func (s *Scope) Scope(path string) *Scope {
 	return ss
 }
 
+// GET creates a route for a GET method.
+func (s *Scope) GET(path string, handler RouteHandler) Route {
+	return s.Route(GET, path, handler)
+}
+
+// POST creates a route for a POST method.
+func (s *Scope) POST(path string, handler RouteHandler) Route {
+	return s.Route(POST, path, handler)
+}
+
+// PUT creates a route for a PUT method.
+func (s *Scope) PUT(path string, handler RouteHandler) Route {
+	return s.Route(PUT, path, handler)
+}
+
+// PATCH creates a route for a PATCH method.
+func (s *Scope) PATCH(path string, handler RouteHandler) Route {
+	return s.Route(PATCH, path, handler)
+}
+
+// DELETE creates a route for a DELETE method.
+func (s *Scope) DELETE(path string, handler RouteHandler) Route {
+	return s.Route(DELETE, path, handler)
+}
+
 // Route - Create a new route within the scope
 func (s *Scope) Route(method, path string, handler RouteHandler) Route {
 	r := Route{

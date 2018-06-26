@@ -10,7 +10,7 @@ import (
 
 func TestJSONHeaders(t *testing.T) {
 	server := celerity.New()
-	server.Router.Route("GET", "/foo", func(c celerity.Context) celerity.Response {
+	server.GET("/foo", func(c celerity.Context) celerity.Response {
 		return c.R(nil)
 	})
 

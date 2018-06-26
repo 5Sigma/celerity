@@ -50,6 +50,19 @@ func TestFail(t *testing.T) {
 	}
 }
 
+func TestFailProduction(t *testing.T) {
+	c := NewContext()
+	r := c.Fail(errors.New("some error"))
+	if r.Error == nil {
+		t.Error("error object not set on response")
+	} else if r.Error.Error() != "some error" {
+		t.Error("Incorrect error object")
+	}
+	if r.StatusCode != 500 {
+		t.Errorf("Status code not 500: %d", r.StatusCode)
+	}
+}
+
 func TestURLParams(t *testing.T) {
 	c := NewContext()
 	c.SetParams(map[string]string{"n": "1"})

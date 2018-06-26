@@ -2,9 +2,12 @@ package celerity
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/url"
 	"strconv"
+
+	"github.com/spf13/viper"
 )
 
 // Context - A request context object
@@ -16,6 +19,7 @@ type Context struct {
 	QueryParams Params
 	properties  map[string]interface{}
 	Response    Response
+	Env         string
 }
 
 // NewContext - Create a new context object
@@ -25,6 +29,7 @@ func NewContext() Context {
 		QueryParams: Params(map[string]string{}),
 		properties:  map[string]interface{}{},
 		Response:    NewResponse(),
+		Env:         viper.GetString("env"),
 	}
 }
 
@@ -59,10 +64,24 @@ func (c *Context) Respond(obj interface{}) Response {
 	return c.Response
 }
 
-// Fail - Returns a 500 internal server erorr and outputs the passed error
+// Fail is used for unrecoverable and internal errors. In a production
+// environment the error is not passed to the client.
 // message.
 func (c *Context) Fail(err error) Response {
 	c.Response.StatusCode = 500
+	c.Response.Data = nil
+	if viper.GetString("env") == PROD {
+		c.Response.Error = errors.New("the request could not be processed")
+	} else {
+		c.Response.Error = err
+	}
+
+	return c.Response
+}
+
+// Error - Returns a erorr and outputs the passed error message.
+func (c *Context) Error(status int, err error) Response {
+	c.Response.StatusCode = status
 	c.Response.Data = nil
 	c.Response.Error = err
 	return c.Response

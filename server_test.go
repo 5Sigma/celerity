@@ -11,7 +11,7 @@ import (
 
 func TestServeHTTP(t *testing.T) {
 	server := New()
-	server.Router.Route("GET", "/foo", func(c Context) Response {
+	server.Route("GET", "/foo", func(c Context) Response {
 		return c.R(map[string]string{"test": "test"})
 	})
 
@@ -37,7 +37,7 @@ func TestServeHTTP(t *testing.T) {
 
 func TestURLParamHandling(t *testing.T) {
 	server := New()
-	server.Router.Route("GET", "/foo/:id", func(c Context) Response {
+	server.Route("GET", "/foo/:id", func(c Context) Response {
 		return c.R(map[string]interface{}{"id": c.URLParams.Int("id")})
 	})
 
@@ -63,7 +63,7 @@ func TestURLParamHandling(t *testing.T) {
 
 func TestQueryParamHandling(t *testing.T) {
 	server := New()
-	server.Router.Route("GET", "/foo", func(c Context) Response {
+	server.Route("GET", "/foo", func(c Context) Response {
 		return c.R(map[string]interface{}{"name": c.QueryParams.String("name")})
 	})
 
@@ -89,7 +89,7 @@ func TestQueryParamHandling(t *testing.T) {
 
 func TestNotFound(t *testing.T) {
 	server := New()
-	server.Router.Route("GET", "/foo/:id", func(c Context) Response {
+	server.Route("GET", "/foo/:id", func(c Context) Response {
 		return c.R(map[string]interface{}{"id": c.URLParams.Int("id")})
 	})
 
@@ -118,7 +118,7 @@ func TestNotFound(t *testing.T) {
 
 func TestRewrite(t *testing.T) {
 	server := New()
-	server.Router.Route("GET", "/users/:id/profile", func(c Context) Response {
+	server.Route("GET", "/users/:id/profile", func(c Context) Response {
 		return c.R(map[string]interface{}{"id": c.URLParams.Int("id")})
 	})
 
@@ -151,7 +151,7 @@ func TestRewrite(t *testing.T) {
 
 func TestDataExtration(t *testing.T) {
 	server := New()
-	server.Router.Route(POST, "/foo", func(c Context) Response {
+	server.Route(POST, "/foo", func(c Context) Response {
 		req := struct {
 			Name string `json:"name"`
 		}{}
@@ -183,9 +183,72 @@ func TestDataExtration(t *testing.T) {
 	res.Body.Close()
 }
 
+func TestServerMethodAliases(t *testing.T) {
+	{
+		svr := New()
+		svr.GET("/get", func(c Context) Response {
+			return c.R("test")
+		})
+		c := NewContext()
+		req, _ := http.NewRequest(GET, "/get", nil)
+		r := svr.Router.Root.Handle(c, req)
+		if r.StatusCode != 200 {
+			t.Error("Non 200 response code for valid method/path")
+		}
+	}
+	{
+		svr := New()
+		svr.PUT("/put", func(c Context) Response {
+			return c.R("test")
+		})
+		c := NewContext()
+		req, _ := http.NewRequest(PUT, "/put", nil)
+		r := svr.Router.Root.Handle(c, req)
+		if r.StatusCode != 200 {
+			t.Error("Non 200 response code for valid method/path")
+		}
+	}
+	{
+		svr := New()
+		svr.DELETE("/delete", func(c Context) Response {
+			return c.R("test")
+		})
+		c := NewContext()
+		req, _ := http.NewRequest(DELETE, "/delete", nil)
+		r := svr.Router.Root.Handle(c, req)
+		if r.StatusCode != 200 {
+			t.Error("Non 200 response code for valid method/path")
+		}
+	}
+	{
+		svr := New()
+		svr.PATCH("/patch", func(c Context) Response {
+			return c.R("test")
+		})
+		c := NewContext()
+		req, _ := http.NewRequest(PATCH, "/patch", nil)
+		r := svr.Router.Root.Handle(c, req)
+		if r.StatusCode != 200 {
+			t.Error("Non 200 response code for valid method/path")
+		}
+	}
+	{
+		svr := New()
+		svr.POST("/post", func(c Context) Response {
+			return c.R("test")
+		})
+		c := NewContext()
+		req, _ := http.NewRequest(POST, "/post", nil)
+		r := svr.Router.Root.Handle(c, req)
+		if r.StatusCode != 200 {
+			t.Error("Non 200 response code for valid method/path")
+		}
+	}
+}
+
 func BenchmarkRouteProcessing(b *testing.B) {
 	server := New()
-	server.Router.Route("GET", "/foo/:id", func(c Context) Response {
+	server.Route("GET", "/foo/:id", func(c Context) Response {
 		return c.R(map[string]interface{}{"id": c.URLParams.Int("id")})
 	})
 

@@ -19,7 +19,7 @@ func (a *MockAegisAdapter) ValidateSession(c celerity.Context, token string) boo
 func TestSessionValidation(t *testing.T) {
 	server := celerity.New()
 
-	server.Router.Route("GET", "/foo", func(c celerity.Context) celerity.Response {
+	server.GET("/foo", func(c celerity.Context) celerity.Response {
 		return c.R(nil)
 	})
 

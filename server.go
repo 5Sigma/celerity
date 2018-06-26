@@ -66,6 +66,31 @@ func (s *Server) Route(method, path string, h RouteHandler) {
 	s.Router.Root.Route(method, path, h)
 }
 
+// GET creates a route for a GET method.
+func (s *Server) GET(path string, handler RouteHandler) Route {
+	return s.Router.Root.Route(GET, path, handler)
+}
+
+// POST creates a route for a POST method.
+func (s *Server) POST(path string, handler RouteHandler) Route {
+	return s.Router.Root.Route(POST, path, handler)
+}
+
+// PUT creates a route for a PUT method.
+func (s *Server) PUT(path string, handler RouteHandler) Route {
+	return s.Router.Root.Route(PUT, path, handler)
+}
+
+// PATCH creates a route for a PATCH method.
+func (s *Server) PATCH(path string, handler RouteHandler) Route {
+	return s.Router.Root.Route(PATCH, path, handler)
+}
+
+// DELETE creates a route for a DELETE method.
+func (s *Server) DELETE(path string, handler RouteHandler) Route {
+	return s.Router.Root.Route(DELETE, path, handler)
+}
+
 /*
 Rewrite rewrites urls based on on ruleset. The rewrite function accepts a
 RewriteRule map that shold contain matching patterns and transformed URLs. The

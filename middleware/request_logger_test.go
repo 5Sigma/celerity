@@ -22,7 +22,7 @@ func TestConsoleOutput(t *testing.T) {
 
 	celeritytest.Get(svr, "/foo")
 
-	if out.Len() != 54 {
+	if out.Len() > 54 {
 		t.Errorf("output length was not correct: %d, should be 54", out.Len())
 	}
 }

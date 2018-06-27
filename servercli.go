@@ -59,6 +59,10 @@ to quickly create a Cobra application.`,
 	viper.BindPFlag("host", runCmd.PersistentFlags().Lookup("host"))
 	viper.SetDefault("host", "0.0.0.0")
 
+	runCmd.PersistentFlags().String("env", "debug", "Select the environment setup. Can be 'dev' or 'prod'")
+	viper.BindPFlag("env", runCmd.PersistentFlags().Lookup("env"))
+	viper.SetDefault("env", "dev")
+
 	rootCmd.AddCommand(runCmd)
 
 	var routesCmd = &cobra.Command{

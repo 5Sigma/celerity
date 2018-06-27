@@ -89,13 +89,23 @@ func (s *Scope) Match(req *http.Request, path string) bool {
 	return false
 }
 
+func notFoundHandler(c Context) Response {
+	return NewErrorResponse(http.StatusNotFound, "The requested resource was not found")
+}
+
 func (s *Scope) handleWithMiddleware(c Context, req *http.Request, path string, middleware []MiddlewareHandler) Response {
 	ok, rPath := s.Path.Match(path)
-	if !ok {
-		return NewErrorResponse(http.StatusNotFound, "The requested resource was not found")
-	}
 
 	middleware = append(middleware, s.Middleware...)
+
+	if !ok {
+		var h RouteHandler
+		h = notFoundHandler
+		for i := len(s.Middleware); i > 0; i-- {
+			h = s.Middleware[i-1](h)
+		}
+		return h(c)
+	}
 
 	for _, r := range s.Routes {
 		if r.Match(req.Method, rPath) {
@@ -113,7 +123,14 @@ func (s *Scope) handleWithMiddleware(c Context, req *http.Request, path string, 
 			return ss.handleWithMiddleware(c, req, rPath, middleware)
 		}
 	}
-	return NewErrorResponse(http.StatusNotFound, "The requested resource was not found")
+
+	var h RouteHandler
+	h = notFoundHandler
+	for i := len(s.Middleware); i > 0; i-- {
+		h = s.Middleware[i-1](h)
+	}
+	return h(c)
+
 }
 
 // Handle - Handle an incomming URL

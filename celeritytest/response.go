@@ -3,6 +3,8 @@ package celeritytest
 import (
 	"encoding/json"
 
+	validator "gopkg.in/go-playground/validator.v9"
+
 	"github.com/tidwall/gjson"
 )
 
@@ -12,6 +14,7 @@ import (
 type Response struct {
 	StatusCode int
 	Data       string
+	validator  *validator.Validate
 }
 
 // AssertString checks a string value in the returning JSON at a given path.
@@ -89,4 +92,16 @@ func (r *Response) ExtractAt(path string, obj interface{}) error {
 // GetResult returns a result object at a given path.
 func (r *Response) GetResult(path string) gjson.Result {
 	return gjson.Get(r.Data, path)
+}
+
+// Validate validates the the response data against a validation structure
+func (r *Response) Validate(vs interface{}) error {
+	if r.validator == nil {
+		r.validator = validator.New()
+	}
+	err := json.Unmarshal([]byte(r.Data), vs)
+	if err != nil {
+		return err
+	}
+	return r.validator.Struct(vs)
 }

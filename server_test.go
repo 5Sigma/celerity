@@ -2,11 +2,14 @@ package celerity
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	validator "gopkg.in/go-playground/validator.v9"
 )
 
 func TestServeHTTP(t *testing.T) {
@@ -27,12 +30,26 @@ func TestServeHTTP(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error reading response: %s", err.Error())
 	}
-	sbody := string(bbody)
+	defer res.Body.Close()
 
-	if sbody != `{"requestId":"","success":true,"error":"","data":{"test":"test"},"meta":{}}` {
-		t.Errorf("Response not formatted correctly:\n%s", string(sbody))
+	jsRes := struct {
+		RequestID string `json:"requestId" validate:"len=32"`
+		Data      struct {
+			Test string `json:"test" validate:"required,eq=test"`
+		} `validate:"required" json:"data"`
+		Error string `json:"eq="`
+	}{}
+
+	err = json.Unmarshal(bbody, &jsRes)
+	if err != nil {
+		t.Error(err.Error())
+		return
 	}
-	res.Body.Close()
+
+	if err := validator.New().Struct(jsRes); err != nil {
+		t.Error(err.Error())
+	}
+
 }
 
 func TestURLParamHandling(t *testing.T) {
@@ -49,16 +66,27 @@ func TestURLParamHandling(t *testing.T) {
 		t.Errorf("Error requesting url: %s", err.Error())
 	}
 
+	defer res.Body.Close()
 	bbody, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("Error reading response: %s", err.Error())
 	}
-	sbody := string(bbody)
-	expected := `{"requestId":"","success":true,"error":"","data":{"id":13},"meta":{}}`
-	if sbody != expected {
-		t.Errorf("Response not formatted correctly:\n%s\n%s", expected, string(sbody))
+
+	jsRes := struct {
+		Data struct {
+			ID int `json:"id" validate:"eq=13"`
+		}
+	}{}
+
+	err = json.Unmarshal(bbody, &jsRes)
+	if err != nil {
+		t.Error(err.Error())
+		return
 	}
-	res.Body.Close()
+
+	if err := validator.New().Struct(jsRes); err != nil {
+		t.Error(err.Error())
+	}
 }
 
 func TestQueryParamHandling(t *testing.T) {
@@ -75,16 +103,27 @@ func TestQueryParamHandling(t *testing.T) {
 		t.Errorf("Error requesting url: %s", err.Error())
 	}
 
+	defer res.Body.Close()
 	bbody, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("Error reading response: %s", err.Error())
 	}
-	sbody := string(bbody)
-	expected := `{"requestId":"","success":true,"error":"","data":{"name":"alice"},"meta":{}}`
-	if sbody != expected {
-		t.Errorf("Response not formatted correctly:\n%s\n%s", expected, string(sbody))
+
+	jsRes := struct {
+		Data struct {
+			Name string `json:"name" validate:"eq=alice"`
+		}
+	}{}
+
+	err = json.Unmarshal(bbody, &jsRes)
+	if err != nil {
+		t.Error(err.Error())
+		return
 	}
-	res.Body.Close()
+
+	if err := validator.New().Struct(jsRes); err != nil {
+		t.Error(err.Error())
+	}
 }
 
 func TestNotFound(t *testing.T) {
@@ -101,15 +140,27 @@ func TestNotFound(t *testing.T) {
 		t.Errorf("Error requesting url: %s", err.Error())
 	}
 
+	defer res.Body.Close()
 	bbody, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("Error reading response: %s", err.Error())
 	}
-	sbody := string(bbody)
-	expected := `{"requestId":"","success":false,"error":"The requested resource was not found","data":null,"meta":null}`
-	if sbody != expected {
-		t.Errorf("Response not formatted correctly:\n%s\n%s", expected, string(sbody))
+
+	jsRes := struct {
+		Error string      `json:"error" validate:"eq=The requested resource was not found"`
+		Data  interface{} `json:"data" validate:"isdefault"`
+	}{}
+
+	err = json.Unmarshal(bbody, &jsRes)
+	if err != nil {
+		t.Error(err.Error())
+		return
 	}
+
+	if err := validator.New().Struct(jsRes); err != nil {
+		t.Error(err.Error())
+	}
+
 	if res.StatusCode != 404 {
 		t.Errorf("Status code should be 404 was %d", res.StatusCode)
 	}
@@ -134,19 +185,27 @@ func TestRewrite(t *testing.T) {
 		t.Errorf("Error requesting url: %s", err.Error())
 	}
 
+	defer res.Body.Close()
 	bbody, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("Error reading response: %s", err.Error())
 	}
-	sbody := string(bbody)
-	expected := `{"requestId":"","success":true,"error":"","data":{"id":3},"meta":{}}`
-	if sbody != expected {
-		t.Errorf("Response not formatted correctly:\n%s\n%s", expected, string(sbody))
+
+	jsRes := struct {
+		Data struct {
+			ID int `json:"id" validate:"eq=3"`
+		}
+	}{}
+
+	err = json.Unmarshal(bbody, &jsRes)
+	if err != nil {
+		t.Error(err.Error())
+		return
 	}
-	if res.StatusCode != 200 {
-		t.Errorf("Status code should be 200 was %d", res.StatusCode)
+
+	if err := validator.New().Struct(jsRes); err != nil {
+		t.Error(err.Error())
 	}
-	res.Body.Close()
 }
 
 func TestDataExtration(t *testing.T) {
@@ -171,16 +230,27 @@ func TestDataExtration(t *testing.T) {
 		t.Errorf("Error requesting url: %s", err.Error())
 	}
 
+	defer res.Body.Close()
 	bbody, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("Error reading response: %s", err.Error())
 	}
-	sbody := string(bbody)
-	expected := `{"requestId":"","success":true,"error":"","data":{"name":"alice"},"meta":{}}`
-	if sbody != expected {
-		t.Errorf("Response not formatted correctly:\n%s\n%s", expected, string(sbody))
+
+	jsRes := struct {
+		Data struct {
+			Name string `json:"name" validate:"eq=alice"`
+		}
+	}{}
+
+	err = json.Unmarshal(bbody, &jsRes)
+	if err != nil {
+		t.Error(err.Error())
+		return
 	}
-	res.Body.Close()
+
+	if err := validator.New().Struct(jsRes); err != nil {
+		t.Error(err.Error())
+	}
 }
 
 func TestServerMethodAliases(t *testing.T) {

@@ -6,7 +6,9 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
+	"github.com/google/uuid"
 	"github.com/spf13/viper"
 )
 
@@ -30,6 +32,7 @@ func NewContext() Context {
 		properties:  map[string]interface{}{},
 		Response:    NewResponse(),
 		Env:         viper.GetString("env"),
+		RequestID:   strings.Replace(uuid.New().String(), "-", "", -1),
 	}
 }
 

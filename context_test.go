@@ -16,6 +16,10 @@ func TestNewContext(t *testing.T) {
 	if c.QueryParams == nil {
 		t.Error("QueryParams not initialized")
 	}
+
+	if len(c.RequestID) != 32 {
+		t.Errorf("request id invalid: %s", c.RequestID)
+	}
 }
 
 func TestRespond(t *testing.T) {

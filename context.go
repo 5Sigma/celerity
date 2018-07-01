@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Context - A request context object
+// Context A request context object
 type Context struct {
 	Method      string
 	Request     *http.Request
@@ -24,7 +24,7 @@ type Context struct {
 	Env         string
 }
 
-// NewContext - Create a new context object
+// NewContext Create a new context object
 func NewContext() Context {
 	return Context{
 		URLParams:   Params(map[string]string{}),
@@ -36,17 +36,17 @@ func NewContext() Context {
 	}
 }
 
-// Header - Request headers
+// Header Request headers
 func (c *Context) Header(key string) string {
 	return c.Request.Header.Get(key)
 }
 
-// Set - Set an arbitrary value in the context
+// Set Set an arbitrary value in the context
 func (c *Context) Set(key string, v interface{}) {
 	c.properties[key] = v
 }
 
-// Get - Return an arbitrary value from the context that was set with the Set
+// Get Return an arbitrary value from the context that was set with the Set
 // function.
 func (c *Context) Get(key string) interface{} {
 	if v, ok := c.properties[key]; ok {
@@ -55,16 +55,21 @@ func (c *Context) Get(key string) interface{} {
 	return nil
 }
 
-// R - Alias for Respond
+// R Alias for Respond
 func (c *Context) R(obj interface{}) Response {
 	return c.Respond(obj)
 }
 
-// Respond - Respond with an object
+// Respond Respond with an object
 func (c *Context) Respond(obj interface{}) Response {
 	c.Response.StatusCode = 200
 	c.Response.Data = obj
 	return c.Response
+}
+
+// F is an alias for the Fail function
+func (c *Context) F(err error) Response {
+	return c.Fail(err)
 }
 
 // Fail is used for unrecoverable and internal errors. In a production
@@ -80,6 +85,11 @@ func (c *Context) Fail(err error) Response {
 	}
 
 	return c.Response
+}
+
+// E is an alias for the Error function.
+func (c *Context) E(status int, err error) Response {
+	return c.Error(status, err)
 }
 
 // Error - Returns a erorr and outputs the passed error message.

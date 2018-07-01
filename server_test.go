@@ -3,11 +3,14 @@ package celerity
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/spf13/viper"
 
 	validator "gopkg.in/go-playground/validator.v9"
 )
@@ -49,7 +52,6 @@ func TestServeHTTP(t *testing.T) {
 	if err := validator.New().Struct(jsRes); err != nil {
 		t.Error(err.Error())
 	}
-
 }
 
 func TestURLParamHandling(t *testing.T) {
@@ -250,6 +252,128 @@ func TestDataExtration(t *testing.T) {
 
 	if err := validator.New().Struct(jsRes); err != nil {
 		t.Error(err.Error())
+	}
+}
+
+func TestErrorResponse(t *testing.T) {
+	server := New()
+	server.Route(GET, "/foo", func(c Context) Response {
+		return c.Error(412, errors.New("error message"))
+	})
+
+	ts := httptest.NewServer(server)
+	defer ts.Close()
+
+	res, err := http.Get(ts.URL + "/foo")
+	if err != nil {
+		t.Errorf("Error requesting url: %s", err.Error())
+	}
+
+	defer res.Body.Close()
+	bbody, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		t.Errorf("Error reading response: %s", err.Error())
+	}
+
+	jsRes := struct {
+		Error string   `json:"error" validate:"eq=error message"`
+		Data  struct{} `json:"data" validate:"isdefault"`
+	}{}
+
+	err = json.Unmarshal(bbody, &jsRes)
+	if err != nil {
+		t.Errorf("%s : %s", err.Error(), string(bbody))
+		return
+	}
+
+	if err := validator.New().Struct(jsRes); err != nil {
+		t.Error(err.Error())
+	}
+
+	if res.StatusCode != 412 {
+		t.Error("status code invalid")
+	}
+}
+
+func TestFailResponse(t *testing.T) {
+	{
+		server := New()
+		server.Route(GET, "/foo", func(c Context) Response {
+			return c.Fail(errors.New("error message"))
+		})
+
+		ts := httptest.NewServer(server)
+		defer ts.Close()
+
+		res, err := http.Get(ts.URL + "/foo")
+		if err != nil {
+			t.Errorf("Error requesting url: %s", err.Error())
+		}
+
+		defer res.Body.Close()
+		bbody, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			t.Errorf("Error reading response: %s", err.Error())
+		}
+
+		jsRes := struct {
+			Error string   `json:"error" validate:"eq=error message"`
+			Data  struct{} `json:"data" validate:"isdefault"`
+		}{}
+
+		err = json.Unmarshal(bbody, &jsRes)
+		if err != nil {
+			t.Errorf("%s : %s", err.Error(), string(bbody))
+			return
+		}
+
+		if err := validator.New().Struct(jsRes); err != nil {
+			t.Error(err.Error())
+		}
+
+		if res.StatusCode != 500 {
+			t.Error("status code invalid")
+		}
+	}
+	{
+		viper.Set("env", "prod")
+		server := New()
+		server.Route(GET, "/foo", func(c Context) Response {
+			return c.Fail(errors.New("error message"))
+		})
+
+		ts := httptest.NewServer(server)
+		defer ts.Close()
+
+		res, err := http.Get(ts.URL + "/foo")
+		if err != nil {
+			t.Errorf("Error requesting url: %s", err.Error())
+		}
+
+		defer res.Body.Close()
+		bbody, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			t.Errorf("Error reading response: %s", err.Error())
+		}
+
+		jsRes := struct {
+			Error string   `json:"error" validate:"eq=the request could not be processed"`
+			Data  struct{} `json:"data" validate:"isdefault"`
+		}{}
+
+		err = json.Unmarshal(bbody, &jsRes)
+		if err != nil {
+			t.Errorf("%s : %s", err.Error(), string(bbody))
+			return
+		}
+
+		if err := validator.New().Struct(jsRes); err != nil {
+			t.Error(err.Error())
+		}
+
+		if res.StatusCode != 500 {
+			t.Error("status code invalid")
+		}
 	}
 }
 

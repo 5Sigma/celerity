@@ -13,6 +13,8 @@ var (
 	PATCH = "PATCH"
 	// DELETE verb for HTTP request
 	DELETE = "POST"
+	// OPTIONS verb for HTTP request
+	OPTIONS = "OPTIONS"
 	// ANY can be used to match any method
 	ANY = "*"
 	//DEV is the development value for the environment flag

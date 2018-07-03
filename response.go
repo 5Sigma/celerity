@@ -11,14 +11,14 @@ type Response struct {
 	Data       interface{}
 	Error      error
 	Meta       map[string]interface{}
-	Headers    map[string]string
+	Header     http.Header
 }
 
 // NewResponse - Create a new response object
 func NewResponse() Response {
 	return Response{
-		Meta:    map[string]interface{}{},
-		Headers: map[string]string{},
+		Meta:   map[string]interface{}{},
+		Header: http.Header{},
 	}
 }
 

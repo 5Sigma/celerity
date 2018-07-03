@@ -52,44 +52,22 @@ type RequestOptions struct {
 // by the package level Post function in cases where you want to make a one off
 // request.
 func (ts *TestServer) Post(path string, data []byte) (*Response, error) {
-	httpServer := httptest.NewServer(ts.Server)
-	defer httpServer.Close()
-
-	res, err := http.Post(httpServer.URL+path, "application/json", bytes.NewBuffer(data))
-	if err != nil {
-		return nil, err
+	reqOpts := RequestOptions{
+		Method: celerity.POST,
+		Path:   path,
 	}
-	bbody, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return nil, err
-	}
-	response := &Response{
-		StatusCode: res.StatusCode,
-		Data:       string(bbody),
-	}
-	return response, err
+	return ts.Request(reqOpts)
 }
 
 // Get - Makes a GET request against the test server. This function is called
 // by the package level Get function in cases where you want to make a one off
 // request.
 func (ts *TestServer) Get(path string) (*Response, error) {
-	httpServer := httptest.NewServer(ts.Server)
-	defer httpServer.Close()
-
-	res, err := http.Get(httpServer.URL + path)
-	if err != nil {
-		return nil, err
+	reqOpts := RequestOptions{
+		Method: celerity.GET,
+		Path:   path,
 	}
-	bbody, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return nil, err
-	}
-	response := &Response{
-		StatusCode: res.StatusCode,
-		Data:       string(bbody),
-	}
-	return response, err
+	return ts.Request(reqOpts)
 }
 
 // Request makes a request against the test server. This function is called by
@@ -120,6 +98,7 @@ func (ts *TestServer) Request(reqOpts RequestOptions) (*Response, error) {
 	response := &Response{
 		StatusCode: res.StatusCode,
 		Data:       string(bbody),
+		Header:     res.Header,
 	}
 	return response, err
 }

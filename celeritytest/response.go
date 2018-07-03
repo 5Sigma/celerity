@@ -2,6 +2,7 @@ package celeritytest
 
 import (
 	"encoding/json"
+	"net/http"
 
 	validator "gopkg.in/go-playground/validator.v9"
 
@@ -15,6 +16,7 @@ type Response struct {
 	StatusCode int
 	Data       string
 	validator  *validator.Validate
+	Header     http.Header
 }
 
 // AssertString checks a string value in the returning JSON at a given path.

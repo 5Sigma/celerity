@@ -22,6 +22,7 @@ type Context struct {
 	properties  map[string]interface{}
 	Response    Response
 	Env         string
+	ScopedPath  string
 }
 
 // NewContext Create a new context object
@@ -34,6 +35,14 @@ func NewContext() Context {
 		Env:         viper.GetString("env"),
 		RequestID:   strings.Replace(uuid.New().String(), "-", "", -1),
 	}
+}
+
+// RequestContext - Creates a new context and sets its request.
+func RequestContext(r *http.Request) Context {
+	c := NewContext()
+	c.Request = r
+	c.ScopedPath = r.URL.Path
+	return c
 }
 
 // Header Request headers

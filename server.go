@@ -24,12 +24,11 @@ func NewServer() *Server {
 
 // ServeHTTP - Serves the HTTP request. Complies with http.Handler interface
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	c := NewContext()
 	rewrite, rewritePath := s.RewriteRules.Match(r.URL.Path)
 	if rewrite {
 		r.URL.Path = rewritePath
 	}
-	c.Request = r
+	c := RequestContext(r)
 	c.SetQueryParamsFromURL(r.URL)
 	resp := s.Router.Handle(c, r)
 	b, err := s.ResponseAdapter.Process(c, resp)

@@ -383,12 +383,11 @@ func TestServerMethodAliases(t *testing.T) {
 		svr.GET("/get", func(c Context) Response {
 			return c.R("test")
 		})
-		c := NewContext()
 		req, _ := http.NewRequest(GET, "/get", nil)
-		c.Request = req
+		c := RequestContext(req)
 		r := svr.Router.Root.Handle(c)
 		if r.StatusCode != 200 {
-			t.Error("Non 200 response code for valid method/path")
+			t.Errorf("Non 200 response code for valid method/path: %d", r.StatusCode)
 		}
 	}
 	{
@@ -396,9 +395,8 @@ func TestServerMethodAliases(t *testing.T) {
 		svr.PUT("/put", func(c Context) Response {
 			return c.R("test")
 		})
-		c := NewContext()
 		req, _ := http.NewRequest(PUT, "/put", nil)
-		c.Request = req
+		c := RequestContext(req)
 		r := svr.Router.Root.Handle(c)
 		if r.StatusCode != 200 {
 			t.Error("Non 200 response code for valid method/path")
@@ -409,9 +407,8 @@ func TestServerMethodAliases(t *testing.T) {
 		svr.DELETE("/delete", func(c Context) Response {
 			return c.R("test")
 		})
-		c := NewContext()
 		req, _ := http.NewRequest(DELETE, "/delete", nil)
-		c.Request = req
+		c := RequestContext(req)
 		r := svr.Router.Root.Handle(c)
 		if r.StatusCode != 200 {
 			t.Error("Non 200 response code for valid method/path")
@@ -422,9 +419,8 @@ func TestServerMethodAliases(t *testing.T) {
 		svr.PATCH("/patch", func(c Context) Response {
 			return c.R("test")
 		})
-		c := NewContext()
 		req, _ := http.NewRequest(PATCH, "/patch", nil)
-		c.Request = req
+		c := RequestContext(req)
 		r := svr.Router.Root.Handle(c)
 		if r.StatusCode != 200 {
 			t.Error("Non 200 response code for valid method/path")
@@ -435,9 +431,8 @@ func TestServerMethodAliases(t *testing.T) {
 		svr.POST("/post", func(c Context) Response {
 			return c.R("test")
 		})
-		c := NewContext()
 		req, _ := http.NewRequest(POST, "/post", nil)
-		c.Request = req
+		c := RequestContext(req)
 		r := svr.Router.Root.Handle(c)
 		if r.StatusCode != 200 {
 			t.Error("Non 200 response code for valid method/path")

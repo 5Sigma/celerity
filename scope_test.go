@@ -52,9 +52,8 @@ func TestScopeHandle(t *testing.T) {
 		scope.Route("GET", "/users", func(c Context) Response {
 			return c.R("test")
 		})
-		c := NewContext()
 		req, _ := http.NewRequest(GET, "/users", nil)
-		c.Request = req
+		c := RequestContext(req)
 		r := scope.Handle(c)
 		v, ok := r.Data.(string)
 		if !ok {
@@ -72,9 +71,8 @@ func TestMethodRouting(t *testing.T) {
 		scope.Route(GET, "/users", func(c Context) Response {
 			return c.R("test")
 		})
-		c := NewContext()
 		req, _ := http.NewRequest(GET, "/users", nil)
-		c.Request = req
+		c := RequestContext(req)
 		r := scope.Handle(c)
 		if r.StatusCode != 200 {
 			t.Error("Non 200 response code for valid method/path")
@@ -85,9 +83,8 @@ func TestMethodRouting(t *testing.T) {
 		scope.Route(POST, "/users", func(c Context) Response {
 			return c.R("test")
 		})
-		c := NewContext()
 		req, _ := http.NewRequest(GET, "/users", nil)
-		c.Request = req
+		c := RequestContext(req)
 		r := scope.Handle(c)
 		if r.StatusCode != 404 {
 			t.Error("Non 404 response code for invalid method/path")
@@ -101,9 +98,8 @@ func TestMethodAliases(t *testing.T) {
 		scope.GET("/get", func(c Context) Response {
 			return c.R("test")
 		})
-		c := NewContext()
 		req, _ := http.NewRequest(GET, "/get", nil)
-		c.Request = req
+		c := RequestContext(req)
 		r := scope.Handle(c)
 		if r.StatusCode != 200 {
 			t.Error("Non 200 response code for valid method/path")
@@ -114,9 +110,8 @@ func TestMethodAliases(t *testing.T) {
 		scope.PUT("/put", func(c Context) Response {
 			return c.R("test")
 		})
-		c := NewContext()
 		req, _ := http.NewRequest(PUT, "/put", nil)
-		c.Request = req
+		c := RequestContext(req)
 		r := scope.Handle(c)
 		if r.StatusCode != 200 {
 			t.Error("Non 200 response code for valid method/path")
@@ -127,9 +122,8 @@ func TestMethodAliases(t *testing.T) {
 		scope.DELETE("/delete", func(c Context) Response {
 			return c.R("test")
 		})
-		c := NewContext()
 		req, _ := http.NewRequest(DELETE, "/delete", nil)
-		c.Request = req
+		c := RequestContext(req)
 		r := scope.Handle(c)
 		if r.StatusCode != 200 {
 			t.Error("Non 200 response code for valid method/path")
@@ -140,9 +134,8 @@ func TestMethodAliases(t *testing.T) {
 		scope.PATCH("/patch", func(c Context) Response {
 			return c.R("test")
 		})
-		c := NewContext()
 		req, _ := http.NewRequest(PATCH, "/patch", nil)
-		c.Request = req
+		c := RequestContext(req)
 		r := scope.Handle(c)
 		if r.StatusCode != 200 {
 			t.Error("Non 200 response code for valid method/path")
@@ -153,9 +146,8 @@ func TestMethodAliases(t *testing.T) {
 		scope.POST("/post", func(c Context) Response {
 			return c.R("test")
 		})
-		c := NewContext()
 		req, _ := http.NewRequest(POST, "/post", nil)
-		c.Request = req
+		c := RequestContext(req)
 		r := scope.Handle(c)
 		if r.StatusCode != 200 {
 			t.Error("Non 200 response code for valid method/path")
@@ -185,9 +177,8 @@ func TestScopeCollision(t *testing.T) {
 	users.Route(GET, "/get", func(c Context) Response {
 		return c.R("test")
 	})
-	c := NewContext()
 	req, _ := http.NewRequest(GET, "/users/get", nil)
-	c.Request = req
+	c := RequestContext(req)
 	r := root.Handle(c)
 	v, ok := r.Data.(string)
 	if !ok {
@@ -212,9 +203,8 @@ func TestMiddleware(t *testing.T) {
 		}
 		return c.R("bad")
 	})
-	c := NewContext()
 	req, _ := http.NewRequest(GET, "/middleware", nil)
-	c.Request = req
+	c := RequestContext(req)
 	r := root.Handle(c)
 	v, ok := r.Data.(string)
 	if !ok {

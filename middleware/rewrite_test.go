@@ -52,3 +52,24 @@ func TestRewrite(t *testing.T) {
 		t.Error(err.Error())
 	}
 }
+
+func TestRewriteRulesMatch(t *testing.T) {
+	rr := RewriteRules{
+		"/people/(.*)/profile": "/users/$1/profile",
+	}
+	{
+		ok, newPath := rr.Match("/people/3/profile")
+		if !ok {
+			t.Error("did not match path")
+		}
+		if newPath != "/users/3/profile" {
+			t.Errorf("transformed path not correct: %s", newPath)
+		}
+	}
+	{
+		ok, _ := rr.Match("/peoples/3/profile")
+		if ok {
+			t.Error("should not match bad path")
+		}
+	}
+}

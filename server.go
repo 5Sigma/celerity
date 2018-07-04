@@ -24,12 +24,11 @@ func NewServer() *Server {
 
 // ServeHTTP - Serves the HTTP request. Complies with http.Handler interface
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	c := NewContext()
 	rewrite, rewritePath := s.RewriteRules.Match(r.URL.Path)
 	if rewrite {
 		r.URL.Path = rewritePath
 	}
-	c.Request = r
+	c := RequestContext(r)
 	c.SetQueryParamsFromURL(r.URL)
 	resp := s.Router.Handle(c, r)
 	b, err := s.ResponseAdapter.Process(c, resp)
@@ -38,12 +37,19 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for k, v := range c.Response.Headers {
-		w.Header().Add(k, v)
+	for k, vs := range c.Response.Header {
+		for _, v := range vs {
+			w.Header().Add(k, v)
+		}
 	}
 
 	w.WriteHeader(resp.StatusCode)
 	w.Write(b)
+}
+
+// Pre - Register prehandle middleware for the root scope.
+func (s *Server) Pre(mw MiddlewareHandler) {
+	s.Router.Root.Pre(mw)
 }
 
 // Use - Use a middleware in the root scope.

@@ -21,5 +21,5 @@ func NewRouter() *Router {
 
 // Handle - Process the inccomming URL and execute the first matching route
 func (r *Router) Handle(c Context, req *http.Request) Response {
-	return r.Root.Handle(c, req)
+	return r.Root.Handle(c)
 }

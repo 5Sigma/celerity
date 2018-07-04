@@ -383,11 +383,11 @@ func TestServerMethodAliases(t *testing.T) {
 		svr.GET("/get", func(c Context) Response {
 			return c.R("test")
 		})
-		c := NewContext()
 		req, _ := http.NewRequest(GET, "/get", nil)
-		r := svr.Router.Root.Handle(c, req)
+		c := RequestContext(req)
+		r := svr.Router.Root.Handle(c)
 		if r.StatusCode != 200 {
-			t.Error("Non 200 response code for valid method/path")
+			t.Errorf("Non 200 response code for valid method/path: %d", r.StatusCode)
 		}
 	}
 	{
@@ -395,9 +395,9 @@ func TestServerMethodAliases(t *testing.T) {
 		svr.PUT("/put", func(c Context) Response {
 			return c.R("test")
 		})
-		c := NewContext()
 		req, _ := http.NewRequest(PUT, "/put", nil)
-		r := svr.Router.Root.Handle(c, req)
+		c := RequestContext(req)
+		r := svr.Router.Root.Handle(c)
 		if r.StatusCode != 200 {
 			t.Error("Non 200 response code for valid method/path")
 		}
@@ -407,9 +407,9 @@ func TestServerMethodAliases(t *testing.T) {
 		svr.DELETE("/delete", func(c Context) Response {
 			return c.R("test")
 		})
-		c := NewContext()
 		req, _ := http.NewRequest(DELETE, "/delete", nil)
-		r := svr.Router.Root.Handle(c, req)
+		c := RequestContext(req)
+		r := svr.Router.Root.Handle(c)
 		if r.StatusCode != 200 {
 			t.Error("Non 200 response code for valid method/path")
 		}
@@ -419,9 +419,9 @@ func TestServerMethodAliases(t *testing.T) {
 		svr.PATCH("/patch", func(c Context) Response {
 			return c.R("test")
 		})
-		c := NewContext()
 		req, _ := http.NewRequest(PATCH, "/patch", nil)
-		r := svr.Router.Root.Handle(c, req)
+		c := RequestContext(req)
+		r := svr.Router.Root.Handle(c)
 		if r.StatusCode != 200 {
 			t.Error("Non 200 response code for valid method/path")
 		}
@@ -431,9 +431,9 @@ func TestServerMethodAliases(t *testing.T) {
 		svr.POST("/post", func(c Context) Response {
 			return c.R("test")
 		})
-		c := NewContext()
 		req, _ := http.NewRequest(POST, "/post", nil)
-		r := svr.Router.Root.Handle(c, req)
+		c := RequestContext(req)
+		r := svr.Router.Root.Handle(c)
 		if r.StatusCode != 200 {
 			t.Error("Non 200 response code for valid method/path")
 		}

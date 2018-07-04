@@ -6,7 +6,7 @@ import "github.com/5Sigma/celerity"
 func JSONMiddleware() celerity.MiddlewareHandler {
 	return func(next celerity.RouteHandler) celerity.RouteHandler {
 		return func(c celerity.Context) celerity.Response {
-			c.Response.Headers["Content-Type"] = "application/json"
+			c.Response.Header.Set("Content-Type", "application/json")
 			return next(c)
 		}
 	}

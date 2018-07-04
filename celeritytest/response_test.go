@@ -135,18 +135,32 @@ func TestGetResult(t *testing.T) {
 }
 
 func TestValidation(t *testing.T) {
-	s := struct {
-		Success bool   `json:"success" validate:"required"`
-		Error   string `json:"error" validate:"isdefault"`
-		Data    struct {
+	{
+		s := struct {
+			Success bool   `json:"success" validate:"required"`
+			Error   string `json:"error" validate:"isdefault"`
+			Data    struct {
+				People []struct {
+					FirstName string `json:"firstName" validate:"required,alpha"`
+					LastName  string `json:"lastName" validate:"required,alpha"`
+					Age       int    `json:"age" validate:"numeric,required"`
+				} `json:"people" validate:"required,len=2,dive"`
+			} `json:"data" validate:"required"`
+		}{}
+		if err := mockResponse.Validate(&s); err != nil {
+			t.Error(err.Error())
+		}
+	}
+	{
+		s := struct {
 			People []struct {
 				FirstName string `json:"firstName" validate:"required,alpha"`
 				LastName  string `json:"lastName" validate:"required,alpha"`
 				Age       int    `json:"age" validate:"numeric,required"`
 			} `json:"people" validate:"required,len=2,dive"`
-		} `json:"data" validate:"required"`
-	}{}
-	if err := mockResponse.Validate(&s); err != nil {
-		t.Error(err.Error())
+		}{}
+		if err := mockResponse.ValidateAt("data", &s); err != nil {
+			t.Error(err.Error())
+		}
 	}
 }

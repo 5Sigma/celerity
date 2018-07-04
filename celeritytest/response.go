@@ -94,12 +94,25 @@ func (r *Response) GetResult(path string) gjson.Result {
 	return gjson.Get(r.Data, path)
 }
 
-// Validate validates the the response data against a validation structure
+// Validate validates the response data against a validation structure
 func (r *Response) Validate(vs interface{}) error {
 	if r.validator == nil {
 		r.validator = validator.New()
 	}
-	err := json.Unmarshal([]byte(r.Data), vs)
+	err := r.Extract(&vs)
+	if err != nil {
+		return err
+	}
+	return r.validator.Struct(vs)
+}
+
+// ValidateAt validates a portion of the the response data against a
+// validation structure.
+func (r *Response) ValidateAt(path string, vs interface{}) error {
+	if r.validator == nil {
+		r.validator = validator.New()
+	}
+	err := r.ExtractAt(path, &vs)
 	if err != nil {
 		return err
 	}

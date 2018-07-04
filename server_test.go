@@ -336,6 +336,34 @@ func TestFailResponse(t *testing.T) {
 	}
 }
 
+func TestWildcardRouting(t *testing.T) {
+	{
+		svr := New()
+		svr.GET("/get/*", func(c Context) Response {
+			return c.R("test")
+		})
+		req, _ := http.NewRequest(GET, "/get/something/cool", nil)
+		c := RequestContext(req)
+		r := svr.Router.Root.Handle(c)
+		if r.StatusCode != 200 {
+			t.Errorf("Non 200 response code for valid method/path: %d", r.StatusCode)
+		}
+	}
+
+	{
+		svr := New()
+		svr.GET("/get/*", func(c Context) Response {
+			return c.R("test")
+		})
+		req, _ := http.NewRequest(GET, "/not/something/cool", nil)
+		c := RequestContext(req)
+		r := svr.Router.Root.Handle(c)
+		if r.StatusCode == 200 {
+			t.Error("200 response code for invalid method/path")
+		}
+	}
+}
+
 func TestServerMethodAliases(t *testing.T) {
 	{
 		svr := New()

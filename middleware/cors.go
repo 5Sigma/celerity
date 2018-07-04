@@ -13,6 +13,7 @@ type CORSConfig struct {
 	AllowMethods     []string
 	AllowHeaders     []string
 	AllowCredentials bool
+	ExposeHeaders    []string
 	Age              int
 }
 
@@ -28,6 +29,7 @@ func CORSWithConfig(config CORSConfig) celerity.MiddlewareHandler {
 			origins := strings.Join(config.AllowOrigins, ",")
 			methods := strings.Join(config.AllowMethods, ",")
 			headers := strings.Join(config.AllowHeaders, ",")
+			eHeaders := strings.Join(config.ExposeHeaders, ",")
 			c.Response.Header.Set("Access-Control-Allow-Origin", origins)
 			if methods != "" {
 				c.Response.Header.Set("Access-Control-Allow-Methods", methods)
@@ -35,6 +37,16 @@ func CORSWithConfig(config CORSConfig) celerity.MiddlewareHandler {
 			if headers != "" {
 				c.Response.Header.Set("Access-Control-Allow-Headers", methods)
 			}
+			if config.Age > 0 {
+				c.Response.Header.Set("Access-Control-Max-Age", string(config.Age))
+			}
+			if config.AllowCredentials {
+				c.Response.Header.Set("Access-Control-Allow-Credentials", "true")
+			}
+			if eHeaders != "" {
+				c.Response.Header.Set("Access-Control-Expose-Headers", eHeaders)
+			}
+
 			return next(c)
 		}
 	}

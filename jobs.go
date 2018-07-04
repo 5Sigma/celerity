@@ -41,7 +41,7 @@ The following is a simplified example of a running a Job.
 
 		celerity.Run(MyJob)
 
-As a general pattern it is a good idea to put all your Jobs in a seperate
+As a general pattern it is a good idea to put all your Jobs in a separate
 package and register each one when you bootstrap the celerity server.
 
 */

@@ -9,10 +9,9 @@ import (
 	"github.com/spf13/viper"
 )
 
-// HandleCLI - Use the built in CLI handling for the server.
-func HandleCLI(server *Server) error {
+var cfgFile string
 
-	var cfgFile string
+func setupCLI(server *Server) *cobra.Command {
 
 	var rootCmd = &cobra.Command{
 		Use:   "",
@@ -59,9 +58,9 @@ to quickly create a Cobra application.`,
 	viper.BindPFlag("host", runCmd.PersistentFlags().Lookup("host"))
 	viper.SetDefault("host", "0.0.0.0")
 
-	runCmd.PersistentFlags().String("env", "debug", "Select the environment setup. Can be 'dev' or 'prod'")
+	runCmd.PersistentFlags().String("env", DEV, "Select the environment setup. Can be 'dev' or 'prod'")
 	viper.BindPFlag("env", runCmd.PersistentFlags().Lookup("env"))
-	viper.SetDefault("env", "dev")
+	viper.SetDefault("env", DEV)
 
 	rootCmd.AddCommand(runCmd)
 
@@ -78,9 +77,10 @@ to quickly create a Cobra application.`,
 	rootCmd.AddCommand(routesCmd)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is config.yaml)")
+	return rootCmd
+}
 
-	// SET UP FLAGS AND DEFAULTS
-
+func cliConfig() {
 	cobra.OnInitialize(func() {
 		if cfgFile != "" {
 			// Use config file from the flag.
@@ -113,6 +113,15 @@ to quickly create a Cobra application.`,
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
 	}
+}
+
+// HandleCLI - Use the built in CLI handling for the server.
+func HandleCLI(server *Server) error {
+
+	rootCmd := setupCLI(server)
+	// SET UP FLAGS AND DEFAULTS
+
+	cliConfig()
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)

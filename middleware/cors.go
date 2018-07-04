@@ -53,6 +53,11 @@ func CORSWithConfig(config CORSConfig) celerity.MiddlewareHandler {
 }
 
 // CORS returns a CORS middleware with sane defaults
+//
+// CORS middleware can be invoked with a configuration using CORSWithConfig.
+// This middleware will add CORS headers to all requests matched by the scope.
+// This middleware must be used as Preroute middleware using the Scope.Pre
+// function, instead of Scope.Use.
 func CORS() celerity.MiddlewareHandler {
 	config := CORSConfig{
 		AllowOrigins: []string{"*"},

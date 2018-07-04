@@ -17,4 +17,10 @@ func TestNewErrorResponse(t *testing.T) {
 	if r.Error.Error() != "not found" {
 		t.Errorf("error message incorrect: %s", r.Error.Error())
 	}
+	if r.StatusText() != "Not Found" {
+		t.Errorf("status text not correct: %s", r.StatusText())
+	}
+	if r.Success() != false {
+		t.Errorf("success returned true for errored response")
+	}
 }

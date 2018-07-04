@@ -63,6 +63,18 @@ func TestScopeHandle(t *testing.T) {
 			t.Error("Data result not correct")
 		}
 	}
+	{
+		scope := newScope("/")
+		scope.Route("GET", "/users", func(c Context) Response {
+			return c.R("test")
+		})
+		req, _ := http.NewRequest(GET, "/notfound", nil)
+		c := RequestContext(req)
+		r := scope.Handle(c)
+		if r.StatusCode != 404 {
+			t.Error("status code should be 404 for not found path")
+		}
+	}
 }
 
 func TestMethodRouting(t *testing.T) {
@@ -212,5 +224,31 @@ func TestMiddleware(t *testing.T) {
 		return
 	} else if v != "123" {
 		t.Error("Data result not correct")
+	}
+}
+
+func TestPre(t *testing.T) {
+	s := newScope("/")
+	mw := func(next RouteHandler) RouteHandler {
+		return func(c Context) Response {
+			return next(c)
+		}
+	}
+	s.Pre(mw)
+	if len(s.PreMiddleware) != 1 {
+		t.Error("middleware not added to collection")
+	}
+}
+
+func TestUse(t *testing.T) {
+	s := newScope("/")
+	mw := func(next RouteHandler) RouteHandler {
+		return func(c Context) Response {
+			return next(c)
+		}
+	}
+	s.Use(mw)
+	if len(s.Middleware) != 1 {
+		t.Error("middleware not added to collection")
 	}
 }

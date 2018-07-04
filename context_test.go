@@ -109,3 +109,15 @@ func TestHeader(t *testing.T) {
 		t.Error("header value incorrect")
 	}
 }
+
+func TestGet(t *testing.T) {
+	c := NewContext()
+	c.Set("test", "123")
+	if c.Get("test").(string) != "123" {
+		t.Errorf("get returned incorrect value")
+	}
+	if c.Get("1231") != nil {
+		t.Error("get for nonexistant key should return nil")
+	}
+
+}

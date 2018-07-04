@@ -116,7 +116,7 @@ func (c *Context) Extract(obj interface{}) error {
 	return err
 }
 
-//Params - Stores key value params for URL parameters and query paramters. It
+//Params - Stores key value params for URL parameters and query parameters. It
 //offers several helper methods for getting results for a key.
 type Params map[string]string
 

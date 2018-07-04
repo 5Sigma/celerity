@@ -25,6 +25,9 @@ func (rp RoutePath) Match(path string) (bool, string) {
 		return false, path
 	}
 	for idx, t := range rpTokens {
+		if t == "*" {
+			return true, ""
+		}
 		if t == "" {
 			continue
 		}

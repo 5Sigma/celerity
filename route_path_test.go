@@ -56,3 +56,20 @@ func TestRoutePathGetURLParams(t *testing.T) {
 		}
 	}
 }
+
+func TestWildCardMatch(t *testing.T) {
+	{
+		var rp RoutePath = "*"
+		ok, _ := rp.Match("/some/route/to/test")
+		if !ok {
+			t.Error("wldcard path did not match")
+		}
+	}
+	{
+		var rp RoutePath = "/some/route/*"
+		ok, _ := rp.Match("/some/route/to/test")
+		if !ok {
+			t.Error("wldcard path did not match")
+		}
+	}
+}

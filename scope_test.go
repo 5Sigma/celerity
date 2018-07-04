@@ -252,3 +252,21 @@ func TestUse(t *testing.T) {
 		t.Error("middleware not added to collection")
 	}
 }
+
+func TestPanicRecovery(t *testing.T) {
+	s := newScope("/")
+	s.GET("/foo", func(c Context) Response {
+		panic("uh oh")
+	})
+	{
+		req, err := http.NewRequest("GET", "http://example.com/foo", nil)
+		if err != nil {
+			t.Fatal(err.Error())
+		}
+		c := RequestContext(req)
+		r := s.Handle(c)
+		if r.StatusCode != 500 {
+			t.Errorf("status code should be 500: %d", r.StatusCode)
+		}
+	}
+}

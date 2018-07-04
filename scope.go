@@ -1,7 +1,9 @@
 package celerity
 
 import (
+	"fmt"
 	"net/http"
+	"runtime/debug"
 )
 
 // Scope - A group of routes and subgroups used to represent the routing
@@ -151,6 +153,14 @@ func (s *Scope) handleWithMiddleware(c Context, middleware []MiddlewareHandler) 
 }
 
 // Handle - Handle an incomming URL
-func (s *Scope) Handle(c Context) Response {
+func (s *Scope) Handle(c Context) (res Response) {
+	defer func() {
+		if r := recover(); r != nil {
+			res = c.Fail(fmt.Errorf("%v", r))
+			if c.Env == DEV {
+				res.Data = string(debug.Stack())
+			}
+		}
+	}()
 	return s.handleWithMiddleware(c, []MiddlewareHandler{})
 }

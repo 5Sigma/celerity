@@ -22,9 +22,6 @@ type CORSConfig struct {
 func CORSWithConfig(config CORSConfig) celerity.MiddlewareHandler {
 	return func(next celerity.RouteHandler) celerity.RouteHandler {
 		return func(c celerity.Context) celerity.Response {
-			if c.Request.Method != celerity.OPTIONS {
-				return next(c)
-			}
 
 			origins := strings.Join(config.AllowOrigins, ",")
 			methods := strings.Join(config.AllowMethods, ",")
@@ -47,6 +44,9 @@ func CORSWithConfig(config CORSConfig) celerity.MiddlewareHandler {
 				c.Response.Header.Set("Access-Control-Expose-Headers", eHeaders)
 			}
 
+			if c.Request.Method == celerity.OPTIONS {
+				return c.Response
+			}
 			return next(c)
 		}
 	}

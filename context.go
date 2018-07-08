@@ -1,12 +1,16 @@
 package celerity
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
+
+	"github.com/tidwall/gjson"
 
 	"github.com/google/uuid"
 	"github.com/spf13/viper"
@@ -23,6 +27,7 @@ type Context struct {
 	Response    Response
 	Env         string
 	ScopedPath  string
+	data        []byte
 }
 
 // NewContext Create a new context object
@@ -81,6 +86,19 @@ func (c *Context) F(err error) Response {
 	return c.Fail(err)
 }
 
+// Body returns the request body
+func (c *Context) Body() []byte {
+	if len(c.data) == 0 {
+		buf, err := ioutil.ReadAll(c.Request.Body)
+		if err != nil {
+			return []byte{}
+		}
+		c.data = buf
+		return buf
+	}
+	return c.data
+}
+
 // Fail is used for unrecoverable and internal errors. In a production
 // environment the error is not passed to the client.
 // message.
@@ -111,9 +129,14 @@ func (c *Context) Error(status int, err error) Response {
 
 // Extract - Unmarshal request data into a structure.
 func (c *Context) Extract(obj interface{}) error {
-	decoder := json.NewDecoder(c.Request.Body)
+	decoder := json.NewDecoder(bytes.NewReader(c.Body()))
 	err := decoder.Decode(obj)
 	return err
+}
+
+// ExtractValue extracts a value from the request body at a specific JSON node.
+func (c *Context) ExtractValue(path string) gjson.Result {
+	return gjson.Get(string(c.Body()), path)
 }
 
 //Params - Stores key value params for URL parameters and query parameters. It

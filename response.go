@@ -17,8 +17,9 @@ type Response struct {
 // NewResponse - Create a new response object
 func NewResponse() Response {
 	return Response{
-		Meta:   map[string]interface{}{},
-		Header: http.Header{},
+		Meta:       map[string]interface{}{},
+		Header:     http.Header{},
+		StatusCode: 200,
 	}
 }
 

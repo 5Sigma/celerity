@@ -32,7 +32,7 @@ func CORSWithConfig(config CORSConfig) celerity.MiddlewareHandler {
 				c.Response.Header.Set("Access-Control-Allow-Methods", methods)
 			}
 			if headers != "" {
-				c.Response.Header.Set("Access-Control-Allow-Headers", methods)
+				c.Response.Header.Set("Access-Control-Allow-Headers", headers)
 			}
 			if config.Age > 0 {
 				c.Response.Header.Set("Access-Control-Max-Age", string(config.Age))
@@ -61,6 +61,7 @@ func CORSWithConfig(config CORSConfig) celerity.MiddlewareHandler {
 func CORS() celerity.MiddlewareHandler {
 	config := CORSConfig{
 		AllowOrigins: []string{"*"},
+		AllowHeaders: []string{"*"},
 	}
 	return CORSWithConfig(config)
 }

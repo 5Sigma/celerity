@@ -11,7 +11,7 @@ import (
 
 var cfgFile string
 
-func setupCLI(server *Server) *cobra.Command {
+func setupCLI(onRun func() *Server) *cobra.Command {
 
 	var rootCmd = &cobra.Command{
 		Use:   "",
@@ -45,6 +45,7 @@ to quickly create a Cobra application.`,
 				viper.GetString("port"),
 			)
 			vox.Println(banner)
+			server := onRun()
 			vox.Println("Listening on ", hostString)
 			server.Start(hostString)
 		},
@@ -69,6 +70,7 @@ to quickly create a Cobra application.`,
 		Short: "List routes",
 		Long:  `Prints a list of all registered routes in the application.`,
 		Run: func(cmd *cobra.Command, args []string) {
+			server := onRun()
 			vox.Println("All server routes:\n")
 			printScope(server.Router.Root)
 			vox.Println("\n")
@@ -116,9 +118,9 @@ func cliConfig() {
 }
 
 // HandleCLI - Use the built in CLI handling for the server.
-func HandleCLI(server *Server) error {
+func HandleCLI(onRun func() *Server) error {
 
-	rootCmd := setupCLI(server)
+	rootCmd := setupCLI(onRun)
 	// SET UP FLAGS AND DEFAULTS
 
 	cliConfig()

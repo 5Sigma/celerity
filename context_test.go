@@ -121,3 +121,19 @@ func TestGet(t *testing.T) {
 	}
 
 }
+
+func TestBody(t *testing.T) {
+	payload := []byte(`
+		{
+			"foo": {
+				"foos": "bar"
+			}
+		}
+	`)
+	req, _ := http.NewRequest("GET", "/test", bytes.NewReader(payload))
+	c := RequestContext(req)
+	v := c.ExtractValue("foo.foos").String()
+	if v != "bar" {
+		t.Errorf("bar value not found: %s", c.Body())
+	}
+}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"runtime/debug"
+	"strings"
 )
 
 // Scope - A group of routes and subgroups used to represent the routing
@@ -158,7 +159,8 @@ func (s *Scope) Handle(c Context) (res Response) {
 		if r := recover(); r != nil {
 			res = c.Fail(fmt.Errorf("%v", r))
 			if c.Env == DEV {
-				res.Data = string(debug.Stack())
+				stack := strings.Split(string(debug.Stack()), "\n")
+				res.Data = stack
 			}
 		}
 	}()

@@ -55,6 +55,7 @@ func (ts *TestServer) Post(path string, data []byte) (*Response, error) {
 	reqOpts := RequestOptions{
 		Method: celerity.POST,
 		Path:   path,
+		Data:   data,
 	}
 	return ts.Request(reqOpts)
 }

@@ -150,6 +150,7 @@ func TestValidation(t *testing.T) {
 		if err := mockResponse.Validate(&s); err != nil {
 			t.Error(err.Error())
 		}
+
 	}
 	{
 		s := struct {
@@ -161,6 +162,30 @@ func TestValidation(t *testing.T) {
 		}{}
 		if err := mockResponse.ValidateAt("data", &s); err != nil {
 			t.Error(err.Error())
+		}
+	}
+	{
+		s := struct {
+			People []struct {
+				FirstName string `json:"firstName" validate:"required,alpha"`
+				LastName  string `json:"lastName" validate:"required,alpha"`
+				Age       int    `json:"age" validate:"numeric,required"`
+			} `json:"people" validate:"required,len=2,dive"`
+		}{}
+		var badResponse = Response{
+			StatusCode: 200,
+			Data: `
+				{
+					"success": true,
+					"error": "",
+					"data": {
+						"people": []
+					}
+				}
+			`,
+		}
+		if err := badResponse.Validate(&s); err == nil {
+			t.Error("no error returned for bad response")
 		}
 	}
 }

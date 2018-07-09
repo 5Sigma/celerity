@@ -25,11 +25,20 @@ func TestGet(t *testing.T) {
 
 func TestPost(t *testing.T) {
 	s := celerity.New()
-	s.Route(celerity.GET, "/foo", func(c celerity.Context) celerity.Response {
-		return c.R(map[string]string{"param1": "123"})
+	s.Route(celerity.POST, "/foo", func(c celerity.Context) celerity.Response {
+		req := struct {
+			Param1 string `json:"param1"`
+		}{}
+		c.Extract(&req)
+		return c.R(req)
 	})
 
-	r, err := Get(s, "/foo")
+	payload := []byte(`
+		{
+			"param1": "123"
+		}
+	`)
+	r, err := Post(s, "/foo", payload)
 	if err != nil {
 		t.Error(err.Error())
 	}

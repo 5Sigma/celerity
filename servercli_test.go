@@ -14,11 +14,13 @@ func EmptyRouteHandler(c Context) Response {
 }
 
 func TestRoutesCommand(t *testing.T) {
-	svr := New()
 
-	svr.GET("/test", EmptyRouteHandler)
+	rootCmd := setupCLI(func() *Server {
+		svr := New()
 
-	rootCmd := setupCLI(svr)
+		svr.GET("/test", EmptyRouteHandler)
+		return svr
+	})
 	vox.Test()
 	rootCmd.SetArgs([]string{"routes"})
 	err := rootCmd.Execute()

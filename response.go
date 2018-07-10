@@ -12,6 +12,8 @@ type Response struct {
 	Error      error
 	Meta       map[string]interface{}
 	Header     http.Header
+	Filepath   string
+	Fileroot   string
 }
 
 // NewResponse - Create a new response object
@@ -40,4 +42,9 @@ func (r *Response) StatusText() string {
 // is not present
 func (r *Response) Success() bool {
 	return r.Error == nil
+}
+
+// IsFile returns true if the response should output a local file
+func (r *Response) IsFile() bool {
+	return (r.Filepath != "")
 }

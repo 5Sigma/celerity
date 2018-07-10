@@ -105,7 +105,8 @@ func TestMethodRouting(t *testing.T) {
 }
 
 func TestMethodAliases(t *testing.T) {
-	{
+
+	t.Run("GET", func(t *testing.T) {
 		scope := newScope("/")
 		scope.GET("/get", func(c Context) Response {
 			return c.R("test")
@@ -116,8 +117,9 @@ func TestMethodAliases(t *testing.T) {
 		if r.StatusCode != 200 {
 			t.Error("Non 200 response code for valid method/path")
 		}
-	}
-	{
+	})
+
+	t.Run("PUT", func(t *testing.T) {
 		scope := newScope("/")
 		scope.PUT("/put", func(c Context) Response {
 			return c.R("test")
@@ -128,8 +130,8 @@ func TestMethodAliases(t *testing.T) {
 		if r.StatusCode != 200 {
 			t.Error("Non 200 response code for valid method/path")
 		}
-	}
-	{
+	})
+	t.Run("DELETE", func(t *testing.T) {
 		scope := newScope("/")
 		scope.DELETE("/delete", func(c Context) Response {
 			return c.R("test")
@@ -140,8 +142,8 @@ func TestMethodAliases(t *testing.T) {
 		if r.StatusCode != 200 {
 			t.Error("Non 200 response code for valid method/path")
 		}
-	}
-	{
+	})
+	t.Run("PATCH", func(t *testing.T) {
 		scope := newScope("/")
 		scope.PATCH("/patch", func(c Context) Response {
 			return c.R("test")
@@ -152,8 +154,8 @@ func TestMethodAliases(t *testing.T) {
 		if r.StatusCode != 200 {
 			t.Error("Non 200 response code for valid method/path")
 		}
-	}
-	{
+	})
+	t.Run("POST", func(t *testing.T) {
 		scope := newScope("/")
 		scope.POST("/post", func(c Context) Response {
 			return c.R("test")
@@ -164,7 +166,7 @@ func TestMethodAliases(t *testing.T) {
 		if r.StatusCode != 200 {
 			t.Error("Non 200 response code for valid method/path")
 		}
-	}
+	})
 }
 
 func BenchmarkScopeRoute(b *testing.B) {
@@ -258,15 +260,32 @@ func TestPanicRecovery(t *testing.T) {
 	s.GET("/foo", func(c Context) Response {
 		panic("uh oh")
 	})
-	{
-		req, err := http.NewRequest("GET", "http://example.com/foo", nil)
+	req, err := http.NewRequest("GET", "http://example.com/foo", nil)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	c := RequestContext(req)
+	r := s.Handle(c)
+	if r.StatusCode != 500 {
+		t.Errorf("status code should be 500: %d", r.StatusCode)
+	}
+}
+
+func TestServePath(t *testing.T) {
+	s := newScope("/")
+	s.ServePath("/test", "/public")
+	t.Run("valid path", func(t *testing.T) {
+		req, err := http.NewRequest("GET", "http://example.com/test/test.txt", nil)
 		if err != nil {
 			t.Fatal(err.Error())
 		}
 		c := RequestContext(req)
 		r := s.Handle(c)
-		if r.StatusCode != 500 {
-			t.Errorf("status code should be 500: %d", r.StatusCode)
+		if r.StatusCode != 200 {
+			t.Errorf("status code should be 200: %d", r.StatusCode)
 		}
-	}
+		if r.Filepath != "/public/test.txt" {
+			t.Errorf("filepath not correct: %s", r.Filepath)
+		}
+	})
 }

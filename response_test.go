@@ -24,3 +24,11 @@ func TestNewErrorResponse(t *testing.T) {
 		t.Errorf("success returned true for errored response")
 	}
 }
+
+func TestIsFile(t *testing.T) {
+	r := NewResponse()
+	r.Filepath = "/test.txt"
+	if !r.IsFile() {
+		t.Error("should return true")
+	}
+}

@@ -69,6 +69,16 @@ func (s *Scope) Route(method, path string, handler RouteHandler) Route {
 	return r
 }
 
+// ServePath serves static files at a filepath
+func (s *Scope) ServePath(path, staticpath string) {
+	s.GET(path+"/*", func(c Context) Response {
+		filepath := fmt.Sprintf("%s/%s",
+			strings.TrimRight(staticpath, "/"),
+			strings.TrimLeft(c.ScopedPath[len(path):], "/"))
+		return c.File(path, filepath)
+	})
+}
+
 // Use - Use a middleware function
 func (s *Scope) Use(mf ...MiddlewareHandler) {
 	s.Middleware = append(s.Middleware, mf...)
@@ -87,7 +97,7 @@ func (s *Scope) Match(req *http.Request, path string) bool {
 		return false
 	}
 	for _, r := range s.Routes {
-		if r.Match(req.Method, rPath) {
+		if ok, _ := r.Match(req.Method, rPath); ok {
 			return true
 		}
 	}
@@ -121,7 +131,7 @@ func (s *Scope) handleWithMiddleware(c Context, middleware []MiddlewareHandler) 
 	ph := func(c Context) Response {
 
 		for _, r := range s.Routes {
-			if r.Match(c.Request.Method, c.ScopedPath) {
+			if ok, _ := r.Match(c.Request.Method, c.ScopedPath); ok {
 				c.SetParams(r.Path.GetURLParams(c.Request.URL.Path))
 				var h RouteHandler
 				h = r.Handler

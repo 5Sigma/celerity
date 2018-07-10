@@ -1,12 +1,16 @@
 package celerity
 
 import (
+	"io"
 	"net/http"
+	"path/filepath"
+	"strconv"
 )
 
 // Server - Main server instance
 type Server struct {
 	Router          *Router
+	FSAdapter       FSAdapter
 	ResponseAdapter ResponseAdapter
 }
 
@@ -15,6 +19,7 @@ func NewServer() *Server {
 	return &Server{
 		ResponseAdapter: &JSONResponseAdapter{},
 		Router:          NewRouter(),
+		FSAdapter:       &OSAdapter{},
 	}
 }
 
@@ -23,7 +28,29 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c := RequestContext(r)
 	c.SetQueryParamsFromURL(r.URL)
 	resp := s.Router.Handle(c, r)
-	b, err := s.ResponseAdapter.Process(c, resp)
+	if resp.IsFile() {
+		fs := s.FSAdapter.RootPath(resp.Fileroot)
+		f, err := fs.Open(resp.Filepath)
+		if err != nil {
+			w.WriteHeader(500)
+			return
+		}
+		fileHeader := make([]byte, 512)
+		f.Read(fileHeader)
+		fstat, _ := f.Stat()
+		fsize := strconv.FormatInt(fstat.Size(), 10)
+		fname := filepath.Base(resp.Filepath)
+		contentType := http.DetectContentType(fileHeader)
+		w.Header().Set("Content-Disposition", "attachment; filename="+fname)
+		w.Header().Set("Content-Type", contentType)
+		w.Header().Set("Content-Length", fsize)
+		f.Seek(0, 0)
+		io.Copy(w, f)
+		return
+
+	}
+
+	buf, err := s.ResponseAdapter.Process(c, resp)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -36,7 +63,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(resp.StatusCode)
-	w.Write(b)
+	w.Write(buf)
 }
 
 // Pre - Register prehandle middleware for the root scope.

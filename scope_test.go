@@ -284,8 +284,12 @@ func TestServePath(t *testing.T) {
 		if r.StatusCode != 200 {
 			t.Errorf("status code should be 200: %d", r.StatusCode)
 		}
-		if r.Filepath != "/public/test.txt" {
+		if r.Filepath != "/test.txt" {
 			t.Errorf("filepath not correct: %s", r.Filepath)
+		}
+
+		if r.Fileroot != "/public" {
+			t.Errorf("fileroot not correct: %s", r.Fileroot)
 		}
 	})
 }

@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 
 	validator "gopkg.in/go-playground/validator.v9"
@@ -461,4 +462,70 @@ func BenchmarkMiddleware(b *testing.B) {
 		res, _ := http.Get(ts.URL + "/foo/13")
 		res.Body.Close()
 	}
+}
+
+func TestStaticPathServing(t *testing.T) {
+	server := New()
+	adapter := NewMEMAdapter()
+	server.FSAdapter = adapter
+	server.ServePath("/test", "/public/files")
+
+	adapter.MEMFS.MkdirAll("/outsideroot", 0755)
+	afero.WriteFile(adapter.MEMFS, "/outsideroot/test.txt", []byte("outside root file"), 0755)
+	afero.WriteFile(adapter.MEMFS, "/public/files/test.txt", []byte("public file"), 0755)
+
+	t.Run("get valid file", func(t *testing.T) {
+		ts := httptest.NewServer(server)
+		defer ts.Close()
+
+		res, err := http.Get(ts.URL + "/test/test.txt")
+		if err != nil {
+			t.Errorf("Error requesting url: %s", err.Error())
+		}
+
+		if v := res.Header.Get("Content-Type"); v != "application/octet-stream" {
+			t.Errorf("content type was %s", v)
+		}
+
+		if s := res.StatusCode; s != 200 {
+			t.Errorf("status code was %d", s)
+		}
+
+		defer res.Body.Close()
+		bbody, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			t.Errorf("Error reading response: %s", err.Error())
+		}
+		if string(bbody) != "public file" {
+			t.Errorf("body was: %s", string(bbody))
+		}
+	})
+
+	t.Run("get invalid file", func(t *testing.T) {
+		ts := httptest.NewServer(server)
+		defer ts.Close()
+
+		res, err := http.Get(ts.URL + "/test/test2.txt")
+		if err != nil {
+			t.Errorf("Error requesting url: %s", err.Error())
+		}
+
+		if s := res.StatusCode; s != 404 {
+			t.Errorf("status code was %d", s)
+		}
+	})
+
+	t.Run("get unrooted file", func(t *testing.T) {
+		ts := httptest.NewServer(server)
+		defer ts.Close()
+
+		res, err := http.Get(ts.URL + "/../outsideroot/test.txt")
+		if err != nil {
+			t.Errorf("Error requesting url: %s", err.Error())
+		}
+
+		if s := res.StatusCode; s != 404 {
+			t.Errorf("status code was %d", s)
+		}
+	})
 }

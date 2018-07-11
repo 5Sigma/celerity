@@ -16,11 +16,18 @@ func (o *OSAdapter) RootPath(path string) afero.Fs {
 }
 
 // MEMAdapter give access to an in memory file system for testing
-type MEMAdapter struct{}
+type MEMAdapter struct {
+	MEMFS afero.Fs
+}
+
+// NewMEMAdapter creates a new in memory FS adapter for testing
+func NewMEMAdapter() *MEMAdapter {
+	mm := afero.NewMemMapFs()
+	return &MEMAdapter{mm}
+}
 
 // RootPath reutrns a filesystem with in memory access
 func (m *MEMAdapter) RootPath(path string) afero.Fs {
-	mm := afero.NewMemMapFs()
-	mm.MkdirAll(path, 0755)
-	return afero.NewBasePathFs(mm, path)
+	m.MEMFS.MkdirAll(path, 0755)
+	return afero.NewBasePathFs(m.MEMFS, path)
 }

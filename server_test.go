@@ -534,15 +534,13 @@ func TestFileServing(t *testing.T) {
 	server := New()
 	adapter := NewMEMAdapter()
 	server.FSAdapter = adapter
-	server.ServePath("/test", "/public/files")
-
-	adapter.MEMFS.MkdirAll("/outsideroot", 0755)
+	server.ServeFile("/test/afile", "/public/files/test.txt")
 	afero.WriteFile(adapter.MEMFS, "/public/files/test.txt", []byte("public file"), 0755)
 
 	ts := httptest.NewServer(server)
 	defer ts.Close()
 
-	res, err := http.Get(ts.URL + "/test/test.txt")
+	res, err := http.Get(ts.URL + "/test/afile")
 	if err != nil {
 		t.Errorf("Error requesting url: %s", err.Error())
 	}

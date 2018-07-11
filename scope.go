@@ -80,11 +80,11 @@ func (s *Scope) ServePath(path, staticpath string) {
 
 // ServeFile serves static files at a filepath
 func (s *Scope) ServeFile(path, localpath string) {
-	fname := filepath.Base(localpath)
+	fname := "/" + filepath.Base(localpath)
 	fpath := filepath.Dir(localpath)
 
 	s.GET(path, func(c Context) Response {
-		return c.File(fname, fpath)
+		return c.File(fpath, fname)
 	})
 }
 
@@ -184,4 +184,11 @@ func (s *Scope) Handle(c Context) (res Response) {
 		}
 	}()
 	return s.handleWithMiddleware(c, []MiddlewareHandler{})
+}
+
+func fixPath(p string) string {
+	if p[0] != '/' {
+		return "/" + p
+	}
+	return p
 }

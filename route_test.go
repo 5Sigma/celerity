@@ -8,10 +8,10 @@ func TestRouteMatch(t *testing.T) {
 			Method: GET,
 			Path:   "/users",
 		}
-		if !r.Match(GET, "/users") {
+		if ok, _ := r.Match(GET, "/users"); !ok {
 			t.Error("Did not match valid path")
 		}
-		if r.Match(GET, "/bad") {
+		if ok, _ := r.Match(GET, "/bad"); ok {
 			t.Error("Did match invalid path")
 		}
 	}
@@ -20,7 +20,7 @@ func TestRouteMatch(t *testing.T) {
 			Method: POST,
 			Path:   "/users",
 		}
-		if r.Match(GET, "/users") {
+		if ok, _ := r.Match(GET, "/users"); ok {
 			t.Error("should not match incorrect method")
 		}
 	}

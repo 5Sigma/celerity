@@ -127,6 +127,13 @@ func (c *Context) Error(status int, err error) Response {
 	return c.Response
 }
 
+// File sets the response to output a file from a local filepath
+func (c *Context) File(fileroot, filepath string) Response {
+	c.Response.Filepath = filepath
+	c.Response.Fileroot = fileroot
+	return c.Response
+}
+
 // Extract - Unmarshal request data into a structure.
 func (c *Context) Extract(obj interface{}) error {
 	decoder := json.NewDecoder(bytes.NewReader(c.Body()))

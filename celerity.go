@@ -1,6 +1,9 @@
 package celerity
 
-import "github.com/spf13/viper"
+import (
+	"github.com/spf13/afero"
+	"github.com/spf13/viper"
+)
 
 var (
 	// GET verb for HTTP requests
@@ -21,6 +24,8 @@ var (
 	DEV = "dev"
 	//PROD is the production value for the environment flag
 	PROD = "prod"
+	// FS Filesystem interface
+	FS = afero.NewOsFs()
 )
 
 // New - Initialize a new server

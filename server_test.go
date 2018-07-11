@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 
 	validator "gopkg.in/go-playground/validator.v9"
@@ -337,7 +338,7 @@ func TestFailResponse(t *testing.T) {
 }
 
 func TestWildcardRouting(t *testing.T) {
-	{
+	t.Run("valid path", func(t *testing.T) {
 		svr := New()
 		svr.GET("/get/*", func(c Context) Response {
 			return c.R("test")
@@ -346,11 +347,11 @@ func TestWildcardRouting(t *testing.T) {
 		c := RequestContext(req)
 		r := svr.Router.Root.Handle(c)
 		if r.StatusCode != 200 {
-			t.Errorf("Non 200 response code for valid method/path: %d", r.StatusCode)
+			t.Errorf("Non 200 response: %d", r.StatusCode)
 		}
-	}
+	})
 
-	{
+	t.Run("invalid path", func(t *testing.T) {
 		svr := New()
 		svr.GET("/get/*", func(c Context) Response {
 			return c.R("test")
@@ -359,9 +360,9 @@ func TestWildcardRouting(t *testing.T) {
 		c := RequestContext(req)
 		r := svr.Router.Root.Handle(c)
 		if r.StatusCode == 200 {
-			t.Error("200 response code for invalid method/path")
+			t.Error("200 response code")
 		}
-	}
+	})
 }
 
 func TestServerMethodAliases(t *testing.T) {
@@ -460,5 +461,99 @@ func BenchmarkMiddleware(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		res, _ := http.Get(ts.URL + "/foo/13")
 		res.Body.Close()
+	}
+}
+
+func TestStaticPathServing(t *testing.T) {
+	server := New()
+	adapter := NewMEMAdapter()
+	server.FSAdapter = adapter
+	server.ServePath("/test", "/public/files")
+
+	adapter.MEMFS.MkdirAll("/outsideroot", 0755)
+	afero.WriteFile(adapter.MEMFS, "/outsideroot/test.txt", []byte("outside root file"), 0755)
+	afero.WriteFile(adapter.MEMFS, "/public/files/test.txt", []byte("public file"), 0755)
+
+	t.Run("get valid file", func(t *testing.T) {
+		ts := httptest.NewServer(server)
+		defer ts.Close()
+
+		res, err := http.Get(ts.URL + "/test/test.txt")
+		if err != nil {
+			t.Errorf("Error requesting url: %s", err.Error())
+		}
+
+		if v := res.Header.Get("Content-Type"); v != "application/octet-stream" {
+			t.Errorf("content type was %s", v)
+		}
+
+		if s := res.StatusCode; s != 200 {
+			t.Errorf("status code was %d", s)
+		}
+
+		defer res.Body.Close()
+		bbody, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			t.Errorf("Error reading response: %s", err.Error())
+		}
+		if string(bbody) != "public file" {
+			t.Errorf("body was: %s", string(bbody))
+		}
+	})
+
+	t.Run("get invalid file", func(t *testing.T) {
+		ts := httptest.NewServer(server)
+		defer ts.Close()
+
+		res, err := http.Get(ts.URL + "/test/test2.txt")
+		if err != nil {
+			t.Errorf("Error requesting url: %s", err.Error())
+		}
+
+		if s := res.StatusCode; s != 404 {
+			t.Errorf("status code was %d", s)
+		}
+	})
+
+	t.Run("get unrooted file", func(t *testing.T) {
+		ts := httptest.NewServer(server)
+		defer ts.Close()
+
+		res, err := http.Get(ts.URL + "/../outsideroot/test.txt")
+		if err != nil {
+			t.Errorf("Error requesting url: %s", err.Error())
+		}
+
+		if s := res.StatusCode; s != 404 {
+			t.Errorf("status code was %d", s)
+		}
+	})
+}
+
+func TestFileServing(t *testing.T) {
+	server := New()
+	adapter := NewMEMAdapter()
+	server.FSAdapter = adapter
+	server.ServeFile("/test/afile", "/public/files/test.txt")
+	afero.WriteFile(adapter.MEMFS, "/public/files/test.txt", []byte("public file"), 0755)
+
+	ts := httptest.NewServer(server)
+	defer ts.Close()
+
+	res, err := http.Get(ts.URL + "/test/afile")
+	if err != nil {
+		t.Errorf("Error requesting url: %s", err.Error())
+	}
+
+	if s := res.StatusCode; s != 200 {
+		t.Errorf("status code was %d", s)
+	}
+	defer res.Body.Close()
+	bbody, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		t.Errorf("Error reading response: %s", err.Error())
+	}
+	if string(bbody) != "public file" {
+		t.Errorf("body was: %s", string(bbody))
 	}
 }

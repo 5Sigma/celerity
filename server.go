@@ -107,6 +107,11 @@ func (s *Server) ServePath(path, rootpath string) {
 	s.Router.Root.ServePath(path, rootpath)
 }
 
+// ServeFile serves a static file at a given path
+func (s *Server) ServeFile(path, rootpath string) {
+	s.Router.Root.ServeFile(path, rootpath)
+}
+
 // Route - Set a route on the root scope.
 func (s *Server) Route(method, path string, h RouteHandler) {
 	s.Router.Root.Route(method, path, h)

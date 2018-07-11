@@ -3,6 +3,7 @@ package celerity
 import (
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"runtime/debug"
 	"strings"
 )
@@ -74,6 +75,16 @@ func (s *Scope) ServePath(path, staticpath string) {
 	s.GET(path+"/*", func(c Context) Response {
 		path := fmt.Sprintf("/%s", strings.TrimLeft(c.ScopedPath[len(path):], "/"))
 		return c.File(staticpath, path)
+	})
+}
+
+// ServeFile serves static files at a filepath
+func (s *Scope) ServeFile(path, localpath string) {
+	fname := filepath.Base(localpath)
+	fpath := filepath.Dir(localpath)
+
+	s.GET(path, func(c Context) Response {
+		return c.File(fname, fpath)
 	})
 }
 

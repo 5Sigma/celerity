@@ -529,3 +529,33 @@ func TestStaticPathServing(t *testing.T) {
 		}
 	})
 }
+
+func TestFileServing(t *testing.T) {
+	server := New()
+	adapter := NewMEMAdapter()
+	server.FSAdapter = adapter
+	server.ServePath("/test", "/public/files")
+
+	adapter.MEMFS.MkdirAll("/outsideroot", 0755)
+	afero.WriteFile(adapter.MEMFS, "/public/files/test.txt", []byte("public file"), 0755)
+
+	ts := httptest.NewServer(server)
+	defer ts.Close()
+
+	res, err := http.Get(ts.URL + "/test/test.txt")
+	if err != nil {
+		t.Errorf("Error requesting url: %s", err.Error())
+	}
+
+	if s := res.StatusCode; s != 200 {
+		t.Errorf("status code was %d", s)
+	}
+	defer res.Body.Close()
+	bbody, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		t.Errorf("Error reading response: %s", err.Error())
+	}
+	if string(bbody) != "public file" {
+		t.Errorf("body was: %s", string(bbody))
+	}
+}

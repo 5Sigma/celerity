@@ -293,3 +293,10 @@ func TestServePath(t *testing.T) {
 		}
 	})
 }
+
+func TestFixPath(t *testing.T) {
+	p := "test"
+	if fixPath(p) != "/test" {
+		t.Errorf("path not prepended with slash: %s", fixPath(p))
+	}
+}

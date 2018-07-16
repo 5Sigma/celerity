@@ -134,6 +134,13 @@ func (c *Context) File(fileroot, filepath string) Response {
 	return c.Response
 }
 
+// Raw returns a response configured to output a raw []byte resposne. This
+// resposne will also skip the response transformation adapter.
+func (c *Context) Raw(b []byte) Response {
+	c.Response.SetRaw(b)
+	return c.Response
+}
+
 // Extract - Unmarshal request data into a structure.
 func (c *Context) Extract(obj interface{}) error {
 	decoder := json.NewDecoder(bytes.NewReader(c.Body()))

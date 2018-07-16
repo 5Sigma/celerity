@@ -1,6 +1,7 @@
 package celerity
 
 import (
+	"bytes"
 	"io"
 	"net/http"
 	"os"
@@ -70,6 +71,8 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch true {
 	case resp.IsFile():
 		s.serveFile(w, &resp)
+	case resp.IsRaw():
+		io.Copy(w, bytes.NewReader(resp.Raw()))
 	default:
 		buf, err := s.ResponseAdapter.Process(c, resp)
 		if err != nil {

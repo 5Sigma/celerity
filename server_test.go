@@ -557,3 +557,30 @@ func TestFileServing(t *testing.T) {
 		t.Errorf("body was: %s", string(bbody))
 	}
 }
+
+func TestRawResponse(t *testing.T) {
+	server := New()
+	server.GET("/raw", func(c Context) Response {
+		return c.Raw([]byte("test raw"))
+	})
+
+	ts := httptest.NewServer(server)
+	defer ts.Close()
+
+	res, err := http.Get(ts.URL + "/raw")
+	if err != nil {
+		t.Errorf("Error requesting url: %s", err.Error())
+	}
+
+	if s := res.StatusCode; s != 200 {
+		t.Errorf("status code was %d", s)
+	}
+	defer res.Body.Close()
+	bbody, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		t.Errorf("Error reading response: %s", err.Error())
+	}
+	if string(bbody) != "test raw" {
+		t.Errorf("body was: %s", string(bbody))
+	}
+}

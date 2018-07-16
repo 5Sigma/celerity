@@ -14,6 +14,7 @@ type Response struct {
 	Header     http.Header
 	Filepath   string
 	Fileroot   string
+	raw        []byte
 }
 
 // NewResponse - Create a new response object
@@ -47,4 +48,21 @@ func (r *Response) Success() bool {
 // IsFile returns true if the response should output a local file
 func (r *Response) IsFile() bool {
 	return (r.Filepath != "")
+}
+
+// IsRaw determens if the response is a raw response
+func (r *Response) IsRaw() bool {
+	return len(r.raw) > 0
+}
+
+// SetRaw sets the responses raw output
+func (r *Response) SetRaw(b []byte) {
+	r.raw = b
+	r.Filepath = ""
+	r.Data = nil
+}
+
+// Raw returns the raw data for the request
+func (r *Response) Raw() []byte {
+	return r.raw
 }

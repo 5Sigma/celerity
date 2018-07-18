@@ -32,3 +32,17 @@ func TestIsFile(t *testing.T) {
 		t.Error("should return true")
 	}
 }
+
+func TestRaw(t *testing.T) {
+	r := NewResponse()
+	if r.IsRaw() {
+		t.Error("response should not be raw")
+	}
+	r.SetRaw([]byte("test"))
+	if !r.IsRaw() {
+		t.Error("response should be raw")
+	}
+	if string(r.Raw()) != "test" {
+		t.Errorf("raw data not correct: %s", string(r.Raw()))
+	}
+}

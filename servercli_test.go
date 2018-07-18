@@ -3,6 +3,7 @@ package celerity
 import (
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/5Sigma/vox"
@@ -21,16 +22,22 @@ func TestRoutesCommand(t *testing.T) {
 		svr.GET("/test", EmptyRouteHandler)
 		return svr
 	})
-	vox.Test()
+	pl := vox.Test()
 	rootCmd.SetArgs([]string{"routes"})
 	err := rootCmd.Execute()
 	if err != nil {
 		t.Fatalf("Error running routes command: %s", err.Error())
 	}
-	vox.AssertOutput(t, "All server routes:\n")
-	vox.AssertOutput(t, "\n")
-	vox.AssertOutput(t, fmt.Sprint(vox.Yellow, "[SCOPE]", vox.ResetColor, " /\n"))
-	vox.AssertOutput(t, "\tGET\t/test\n")
+	expected := fmt.Sprintf(`All server routes:
+
+%s[SCOPE]%s /
+	GET	/test
+
+`, vox.Yellow, vox.ResetColor) + "\n"
+
+	if v := strings.Join(pl.LogLines, ""); v != expected {
+		t.Errorf("incorrect output: \n'%s'\n'%s'", expected, v)
+	}
 }
 
 func TestEnvironmentVariables(t *testing.T) {

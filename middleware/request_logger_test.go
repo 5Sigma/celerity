@@ -14,9 +14,9 @@ func TestConsoleOutput(t *testing.T) {
 		return c.R(nil)
 	})
 
-	out := new(bytes.Buffer)
 	config := NewLoggerConfig()
-	config.ConsoleOut = out
+	out := new(bytes.Buffer)
+	svr.Log.SetOutput(out)
 
 	svr.Use(RequestLoggerWithConfig(config))
 

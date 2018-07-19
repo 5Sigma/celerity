@@ -141,6 +141,6 @@ func printScope(s *Scope) {
 	}
 
 	for _, r := range s.Routes {
-		vox.Println("\t", r.Method, "\t", r.Path)
+		vox.Println("\t", r)
 	}
 }

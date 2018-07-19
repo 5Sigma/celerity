@@ -534,6 +534,7 @@ func TestFileServing(t *testing.T) {
 	server := New()
 	adapter := NewMEMAdapter()
 	FSAdapter = adapter
+	viper.Set("ENV", DEV)
 	server.ServeFile("/test/afile", "/public/files/test.txt")
 	server.ServePath("/files", "/public/files")
 	server.GET("/files/normal-route", func(c Context) Response {
@@ -591,10 +592,14 @@ func TestFileServing(t *testing.T) {
 		}
 		defer res.Body.Close()
 		bbody, err := ioutil.ReadAll(res.Body)
+		var data = map[string]interface{}{}
+
+		json.Unmarshal(bbody, &data)
+
 		if err != nil {
 			t.Errorf("Error reading response: %s", err.Error())
 		}
-		if string(bbody) != "test" {
+		if data["data"].(string) != "test" {
 			t.Errorf("body was: %s", string(bbody))
 		}
 	})

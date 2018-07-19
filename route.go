@@ -59,7 +59,8 @@ func (l *LocalFileRoute) Match(method string, path string) (bool, string) {
 	if !ok || method != GET || xtra != "" {
 		return false, path
 	}
-	if _, err := fs.Stat(l.LocalPath); os.IsNotExist(err) {
+	fname := "/" + filepath.Base(l.LocalPath)
+	if _, err := fs.Stat(fname); os.IsNotExist(err) {
 		return false, path
 	}
 	return true, xtra
@@ -74,5 +75,35 @@ func (l *LocalFileRoute) Handle(c Context) Response {
 
 // RoutePath returns the route path for the route.
 func (l *LocalFileRoute) RoutePath() RoutePath {
-	panic("not implemented")
+	return l.Path
+}
+
+// LocalPathRoute handles serving any file under a path. If the requested file
+// exists it will be served if not the router will continue processing
+// routes.
+type LocalPathRoute struct {
+	Path      RoutePath
+	LocalPath string
+}
+
+//Match checks if a file exists under the local path
+func (l *LocalPathRoute) Match(method string, path string) (bool, string) {
+	fs := FSAdapter.RootPath(l.LocalPath)
+	fname := "/" + path[len(l.Path):]
+	if _, err := fs.Stat(fname); os.IsNotExist(err) {
+		return false, path
+	}
+	return true, ""
+}
+
+//Handle sets the resposne up to serve the local file.
+func (l *LocalPathRoute) Handle(c Context) Response {
+	fname := c.ScopedPath[len(l.Path):]
+	fpath := l.LocalPath
+	return c.File(fpath, fname)
+}
+
+//RoutePath returns the routepath for the route
+func (l *LocalPathRoute) RoutePath() RoutePath {
+	return l.Path
 }

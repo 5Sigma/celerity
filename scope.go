@@ -71,10 +71,11 @@ func (s *Scope) Route(method, path string, handler RouteHandler) Route {
 
 // ServePath serves static files at a filepath
 func (s *Scope) ServePath(path, staticpath string) {
-	s.GET(path+"/*", func(c Context) Response {
-		path := fmt.Sprintf("/%s", strings.TrimLeft(c.ScopedPath[len(path):], "/"))
-		return c.File(staticpath, path)
-	})
+	r := &LocalPathRoute{
+		Path:      RoutePath(path),
+		LocalPath: staticpath,
+	}
+	s.Routes = append(s.Routes, r)
 }
 
 // ServeFile serves static files at a filepath

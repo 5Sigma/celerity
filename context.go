@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/5Sigma/vox"
 	"github.com/tidwall/gjson"
 
 	"github.com/google/uuid"
@@ -24,6 +25,7 @@ type Context struct {
 	URLParams   Params
 	QueryParams Params
 	properties  map[string]interface{}
+	Log         *vox.Vox
 	Response    Response
 	Env         string
 	ScopedPath  string
@@ -32,6 +34,7 @@ type Context struct {
 
 // NewContext Create a new context object
 func NewContext() Context {
+
 	return Context{
 		URLParams:   Params(map[string]string{}),
 		QueryParams: Params(map[string]string{}),

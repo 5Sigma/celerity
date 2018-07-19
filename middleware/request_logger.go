@@ -70,7 +70,7 @@ func RequestLoggerWithConfig(rlc RequestLoggerConfig) celerity.MiddlewareHandler
 			if err != nil {
 				return r
 			}
-			t.Execute(rlc.ConsoleOut, data)
+			t.Execute(c.Log, data)
 
 			return r
 		}

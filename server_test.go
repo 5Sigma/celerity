@@ -467,7 +467,7 @@ func BenchmarkMiddleware(b *testing.B) {
 func TestStaticPathServing(t *testing.T) {
 	server := New()
 	adapter := NewMEMAdapter()
-	server.FSAdapter = adapter
+	FSAdapter = adapter
 	server.ServePath("/test", "/public/files")
 
 	adapter.MEMFS.MkdirAll("/outsideroot", 0755)
@@ -533,29 +533,71 @@ func TestStaticPathServing(t *testing.T) {
 func TestFileServing(t *testing.T) {
 	server := New()
 	adapter := NewMEMAdapter()
-	server.FSAdapter = adapter
+	FSAdapter = adapter
 	server.ServeFile("/test/afile", "/public/files/test.txt")
+	server.ServePath("/files", "/public/files")
+	server.GET("/files/normal-route", func(c Context) Response {
+		return c.R("test")
+	})
 	afero.WriteFile(adapter.MEMFS, "/public/files/test.txt", []byte("public file"), 0755)
 
 	ts := httptest.NewServer(server)
 	defer ts.Close()
 
-	res, err := http.Get(ts.URL + "/test/afile")
-	if err != nil {
-		t.Errorf("Error requesting url: %s", err.Error())
-	}
+	t.Run("requesting single file", func(t *testing.T) {
+		res, err := http.Get(ts.URL + "/test/afile")
+		if err != nil {
+			t.Errorf("Error requesting url: %s", err.Error())
+		}
 
-	if s := res.StatusCode; s != 200 {
-		t.Errorf("status code was %d", s)
-	}
-	defer res.Body.Close()
-	bbody, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		t.Errorf("Error reading response: %s", err.Error())
-	}
-	if string(bbody) != "public file" {
-		t.Errorf("body was: %s", string(bbody))
-	}
+		if s := res.StatusCode; s != 200 {
+			t.Errorf("status code was %d", s)
+		}
+		defer res.Body.Close()
+		bbody, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			t.Errorf("Error reading response: %s", err.Error())
+		}
+		if string(bbody) != "public file" {
+			t.Errorf("body was: %s", string(bbody))
+		}
+	})
+	t.Run("requesting file from path", func(t *testing.T) {
+		res, err := http.Get(ts.URL + "/files/test.txt")
+		if err != nil {
+			t.Errorf("Error requesting url: %s", err.Error())
+		}
+
+		if s := res.StatusCode; s != 200 {
+			t.Errorf("status code was %d", s)
+		}
+		defer res.Body.Close()
+		bbody, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			t.Errorf("Error reading response: %s", err.Error())
+		}
+		if string(bbody) != "public file" {
+			t.Errorf("body was: %s", string(bbody))
+		}
+	})
+	t.Run("requesting colliding route", func(t *testing.T) {
+		res, err := http.Get(ts.URL + "/files/normal-route")
+		if err != nil {
+			t.Errorf("Error requesting url: %s", err.Error())
+		}
+
+		if s := res.StatusCode; s != 200 {
+			t.Errorf("status code was %d", s)
+		}
+		defer res.Body.Close()
+		bbody, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			t.Errorf("Error reading response: %s", err.Error())
+		}
+		if string(bbody) != "test" {
+			t.Errorf("body was: %s", string(bbody))
+		}
+	})
 }
 
 func TestRawResponse(t *testing.T) {

@@ -3,7 +3,6 @@ package celerity
 import (
 	"fmt"
 	"net/http"
-	"path/filepath"
 	"runtime/debug"
 	"strings"
 )
@@ -61,7 +60,7 @@ func (s *Scope) DELETE(path string, handler RouteHandler) Route {
 
 // Route - Create a new route within the scope
 func (s *Scope) Route(method, path string, handler RouteHandler) Route {
-	r := Route{
+	r := &BasicRoute{
 		Path:    RoutePath(path),
 		Method:  method,
 		Handler: handler,
@@ -80,12 +79,11 @@ func (s *Scope) ServePath(path, staticpath string) {
 
 // ServeFile serves static files at a filepath
 func (s *Scope) ServeFile(path, localpath string) {
-	fname := "/" + filepath.Base(localpath)
-	fpath := filepath.Dir(localpath)
-
-	s.GET(path, func(c Context) Response {
-		return c.File(fpath, fname)
-	})
+	r := &LocalFileRoute{
+		Path:      RoutePath(path),
+		LocalPath: localpath,
+	}
+	s.Routes = append(s.Routes, r)
 }
 
 // Use - Use a middleware function
@@ -141,9 +139,9 @@ func (s *Scope) handleWithMiddleware(c Context, middleware []MiddlewareHandler) 
 
 		for _, r := range s.Routes {
 			if ok, _ := r.Match(c.Request.Method, c.ScopedPath); ok {
-				c.SetParams(r.Path.GetURLParams(c.Request.URL.Path))
+				c.SetParams(r.RoutePath().GetURLParams(c.Request.URL.Path))
 				var h RouteHandler
-				h = r.Handler
+				h = r.Handle
 				for i := len(s.Middleware); i > 0; i-- {
 					h = s.Middleware[i-1](h)
 				}

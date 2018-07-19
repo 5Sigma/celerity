@@ -2,9 +2,9 @@ package celerity
 
 import "testing"
 
-func TestRouteMatch(t *testing.T) {
+func TestBasicRouteMatch(t *testing.T) {
 	{
-		r := Route{
+		r := &BasicRoute{
 			Method: GET,
 			Path:   "/users",
 		}
@@ -16,7 +16,7 @@ func TestRouteMatch(t *testing.T) {
 		}
 	}
 	{
-		r := Route{
+		r := &BasicRoute{
 			Method: POST,
 			Path:   "/users",
 		}

@@ -86,7 +86,7 @@ type LocalPathRoute struct {
 	LocalPath string
 }
 
-//Match checks if a file exists under the local path
+// Match checks if a file exists under the local path
 func (l *LocalPathRoute) Match(method string, path string) (bool, string) {
 	fs := FSAdapter.RootPath(l.LocalPath)
 	fname := "/" + path[len(l.Path):]
@@ -96,14 +96,14 @@ func (l *LocalPathRoute) Match(method string, path string) (bool, string) {
 	return true, ""
 }
 
-//Handle sets the resposne up to serve the local file.
+// Handle sets the resposne up to serve the local file.
 func (l *LocalPathRoute) Handle(c Context) Response {
 	fname := c.ScopedPath[len(l.Path):]
 	fpath := l.LocalPath
 	return c.File(fpath, fname)
 }
 
-//RoutePath returns the routepath for the route
+// RoutePath returns the routepath for the route
 func (l *LocalPathRoute) RoutePath() RoutePath {
 	return l.Path
 }

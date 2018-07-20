@@ -2,10 +2,13 @@ package celerity
 
 import "github.com/spf13/afero"
 
-// FSAdapter is the adapter used for gaining access to the file system
-type FSAdapter interface {
+// FileSystemAdapter is the adapter used for gaining access to the file system
+type FileSystemAdapter interface {
 	RootPath(string) afero.Fs
 }
+
+// FSAdapter is the current method of accessing the file system.
+var FSAdapter FileSystemAdapter = &OSAdapter{}
 
 // OSAdapter gives access to the file system
 type OSAdapter struct{}

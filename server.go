@@ -12,7 +12,6 @@ import (
 // Server - Main server instance
 type Server struct {
 	Router          *Router
-	FSAdapter       FSAdapter
 	ResponseAdapter ResponseAdapter
 }
 
@@ -21,12 +20,11 @@ func NewServer() *Server {
 	return &Server{
 		ResponseAdapter: &JSONResponseAdapter{},
 		Router:          NewRouter(),
-		FSAdapter:       &OSAdapter{},
 	}
 }
 
 func (s *Server) serveFile(w http.ResponseWriter, resp *Response) {
-	fs := s.FSAdapter.RootPath(resp.Fileroot)
+	fs := FSAdapter.RootPath(resp.Fileroot)
 	f, err := fs.Open(resp.Filepath)
 	if os.IsNotExist(err) {
 		w.WriteHeader(404)

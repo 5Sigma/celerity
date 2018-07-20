@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+
+	"github.com/spf13/afero"
 )
 
 func emptyHandler(c Context) Response {
@@ -273,6 +275,9 @@ func TestPanicRecovery(t *testing.T) {
 
 func TestServePath(t *testing.T) {
 	s := newScope("/")
+	adapter := NewMEMAdapter()
+	FSAdapter = adapter
+	afero.WriteFile(adapter.MEMFS, "/public/test.txt", []byte("public file"), 0755)
 	s.ServePath("/test", "/public")
 	t.Run("valid path", func(t *testing.T) {
 		req, err := http.NewRequest("GET", "http://example.com/test/test.txt", nil)

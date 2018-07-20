@@ -23,7 +23,6 @@ func NewServer() *Server {
 	return &Server{
 		ResponseAdapter: &JSONResponseAdapter{},
 		Router:          NewRouter(),
-		FSAdapter:       &OSAdapter{},
 		Log:             vox.New(),
 	}
 }

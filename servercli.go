@@ -46,7 +46,8 @@ to quickly create a Cobra application.`,
 			)
 			vox.Println(banner)
 			server := onRun()
-			vox.Println("Listening on ", hostString)
+			vox.PrintProperty("Bound IP", viper.GetString("host"))
+			vox.PrintProperty("Port", viper.GetString("port"))
 			server.Start(hostString)
 		},
 	}

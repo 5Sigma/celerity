@@ -7,12 +7,15 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+
+	"github.com/5Sigma/vox"
 )
 
 // Server - Main server instance
 type Server struct {
 	Router          *Router
 	ResponseAdapter ResponseAdapter
+	Log             *vox.Vox
 }
 
 // NewServer - Initialize a new server
@@ -20,6 +23,7 @@ func NewServer() *Server {
 	return &Server{
 		ResponseAdapter: &JSONResponseAdapter{},
 		Router:          NewRouter(),
+		Log:             vox.New(),
 	}
 }
 
@@ -57,6 +61,7 @@ func (s *Server) serveFile(w http.ResponseWriter, resp *Response) {
 // ServeHTTP - Serves the HTTP request. Complies with http.Handler interface
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c := RequestContext(r)
+	c.Log = s.Log
 	c.SetQueryParamsFromURL(r.URL)
 	resp := s.Router.Handle(c, r)
 

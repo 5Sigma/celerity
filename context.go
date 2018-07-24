@@ -161,6 +161,7 @@ func (c *Context) Raw(b []byte) Response {
 	return c.Response
 }
 
+// SetDefaults sets default values for the response, in the current case this is just a default status code.
 func (c *Context) SetDefaults() {
 	// If the user has specified their own status code we don't want to override it.
 	if c.Response.StatusCode == -1 {

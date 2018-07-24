@@ -191,3 +191,14 @@ func fixPath(p string) string {
 	}
 	return p
 }
+
+// Channel creates a new channel route
+func (s *Scope) Channel(path string, h ChannelHandler) {
+	ch := NewChannel(h)
+	ch.Open()
+	r := &ChannelRoute{
+		Path:    RoutePath(path),
+		Channel: ch,
+	}
+	s.Routes = append(s.Routes, r)
+}

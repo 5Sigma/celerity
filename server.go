@@ -46,7 +46,9 @@ func (s *Server) serveFile(w http.ResponseWriter, resp *Response) {
 	f.Read(fileHeader)
 	fstat, err := f.Stat()
 	if err != nil {
-
+		w.WriteHeader(500)
+		w.Write([]byte(err.Error()))
+		return
 	}
 	fsize := strconv.FormatInt(fstat.Size(), 10)
 	fname := filepath.Base(resp.Filepath)
@@ -61,6 +63,7 @@ func (s *Server) serveFile(w http.ResponseWriter, resp *Response) {
 // ServeHTTP - Serves the HTTP request. Complies with http.Handler interface
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c := RequestContext(r)
+	c.Writer = w
 	c.Log = s.Log
 	c.SetQueryParamsFromURL(r.URL)
 	resp := s.Router.Handle(c, r)
@@ -72,6 +75,8 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch true {
+	case resp.Handled:
+		return
 	case resp.IsFile():
 		s.serveFile(w, &resp)
 	case resp.IsRaw():

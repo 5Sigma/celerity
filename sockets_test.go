@@ -14,13 +14,13 @@ func TestSockets(t *testing.T) {
 
 	server.Router.Root.Channel("/welcome", func(client *SocketClient, e ChannelEvent) {
 		if e.Event == ChannelEvents.Connect {
-			client.Send([]byte("hello client"))
+			client.SendRaw([]byte("hello client"))
 		}
 	})
 
 	server.Router.Root.Channel("/echo", func(client *SocketClient, e ChannelEvent) {
 		println(string(e.Data))
-		client.Send(e.Data)
+		client.SendRaw(e.Data)
 	})
 
 	ts := httptest.NewServer(server)
@@ -71,4 +71,22 @@ func TestSockets(t *testing.T) {
 		}
 	})
 
+}
+
+func TestRoomRemove(t *testing.T) {
+	c1 := &SocketClient{ID: 1}
+	c2 := &SocketClient{ID: 2}
+	c3 := &SocketClient{ID: 3}
+	room := NewChannelRoom("test-room", c1, c2, c3)
+	c1.Rooms = []*ChannelRoom{room}
+	c2.Rooms = []*ChannelRoom{room}
+	c3.Rooms = []*ChannelRoom{room}
+
+	room.Remove(c1)
+	if l := len(room.Clients); l != 2 {
+		t.Errorf("room should have 2 clients, has %d", l)
+	}
+	if l := len(c1.Rooms); l != 0 {
+		t.Errorf("client1 should have 0 rooms, has %d", l)
+	}
 }

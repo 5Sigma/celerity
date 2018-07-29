@@ -17,6 +17,27 @@ func Post(s *celerity.Server, path string, data []byte) (*Response, error) {
 	return svr.Post(path, data)
 }
 
+//Put creates a TestServer for the given celerity.Server and makes a PUT
+//request against it using the TestServer.Put function.
+func Put(s *celerity.Server, path string, data []byte) (*Response, error) {
+	svr := &TestServer{s}
+	return svr.Put(path, data)
+}
+
+//Patch creates a TestServer for the given celerity.Server and makes a Patch
+//request against it using the TestServer.Patch function.
+func Patch(s *celerity.Server, path string, data []byte) (*Response, error) {
+	svr := &TestServer{s}
+	return svr.Patch(path, data)
+}
+
+//Delete creates a TestServer for the given celerity.Server and makes a Delete
+//request against it using the TestServer.Delete function.
+func Delete(s *celerity.Server, path string, data []byte) (*Response, error) {
+	svr := &TestServer{s}
+	return svr.Delete(path, data)
+}
+
 //Get creates a TestServer for the given celerity.Server and makes a GET
 //request against it using the TestServer.Get function.
 func Get(s *celerity.Server, path string) (*Response, error) {
@@ -54,6 +75,42 @@ type RequestOptions struct {
 func (ts *TestServer) Post(path string, data []byte) (*Response, error) {
 	reqOpts := RequestOptions{
 		Method: celerity.POST,
+		Path:   path,
+		Data:   data,
+	}
+	return ts.Request(reqOpts)
+}
+
+// Put makes a PUT request against the test server. This function is called
+// by the package level Put function in cases where you want to make a one off
+// request.
+func (ts *TestServer) Put(path string, data []byte) (*Response, error) {
+	reqOpts := RequestOptions{
+		Method: celerity.PUT,
+		Path:   path,
+		Data:   data,
+	}
+	return ts.Request(reqOpts)
+}
+
+// Patch makes a PATCH request against the test server. This function is called
+// by the package level Patch function in cases where you want to make a one off
+// request.
+func (ts *TestServer) Patch(path string, data []byte) (*Response, error) {
+	reqOpts := RequestOptions{
+		Method: celerity.PATCH,
+		Path:   path,
+		Data:   data,
+	}
+	return ts.Request(reqOpts)
+}
+
+// Delete makes a DELETE request against the test server. This function is called
+// by the package level Delete function in cases where you want to make a one off
+// request.
+func (ts *TestServer) Delete(path string, data []byte) (*Response, error) {
+	reqOpts := RequestOptions{
+		Method: celerity.DELETE,
 		Path:   path,
 		Data:   data,
 	}

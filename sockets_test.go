@@ -1,7 +1,6 @@
 package celerity
 
 import (
-	"log"
 	"net/http/httptest"
 	"net/url"
 	"testing"
@@ -14,13 +13,20 @@ func TestSockets(t *testing.T) {
 
 	server.Router.Root.Channel("/welcome", func(client *SocketClient, e ChannelEvent) {
 		if e.Event == ChannelEvents.Connect {
-			client.SendRaw([]byte("hello client"))
+			client.SendString("hello client")
 		}
 	})
 
 	server.Router.Root.Channel("/echo", func(client *SocketClient, e ChannelEvent) {
-		println(string(e.Data))
 		client.SendRaw(e.Data)
+	})
+
+	server.Router.Root.Channel("/broadcast", func(client *SocketClient, e ChannelEvent) {
+		client.Channel().Broadcast(map[string]string{"test": "test"})
+	})
+
+	server.Router.Root.Channel("/broadcast-raw", func(client *SocketClient, e ChannelEvent) {
+		client.Channel().BroadcastRaw([]byte("raw broadcast"))
 	})
 
 	ts := httptest.NewServer(server)
@@ -34,7 +40,7 @@ func TestSockets(t *testing.T) {
 	t.Run("welcome", func(t *testing.T) {
 		c, _, err := websocket.DefaultDialer.Dial(tsURL.String()+"/welcome", nil)
 		if err != nil {
-			log.Fatal("dial:", err)
+			t.Fatal("dial:", err)
 		}
 		defer c.Close()
 
@@ -51,7 +57,7 @@ func TestSockets(t *testing.T) {
 	t.Run("echo", func(t *testing.T) {
 		c, _, err := websocket.DefaultDialer.Dial(tsURL.String()+"/echo", nil)
 		if err != nil {
-			log.Fatal("dial:", err)
+			t.Fatal("dial:", err)
 		}
 		defer c.Close()
 
@@ -71,6 +77,40 @@ func TestSockets(t *testing.T) {
 		}
 	})
 
+	t.Run("broadcast", func(t *testing.T) {
+		c, _, err := websocket.DefaultDialer.Dial(tsURL.String()+"/broadcast", nil)
+		if err != nil {
+			t.Fatal("dial:", err)
+		}
+		defer c.Close()
+
+		_, message, err := c.ReadMessage()
+		if err != nil {
+			t.Errorf("read: %s", err)
+			return
+		}
+		expected := `{"test":"test"}`
+		if string(message) != expected {
+			t.Errorf("Recieved: '%s' wanted '%s'", string(message), expected)
+		}
+	})
+	t.Run("broadcast-raw", func(t *testing.T) {
+		c, _, err := websocket.DefaultDialer.Dial(tsURL.String()+"/broadcast-raw", nil)
+		if err != nil {
+			t.Fatal("dial:", err)
+		}
+		defer c.Close()
+
+		_, message, err := c.ReadMessage()
+		if err != nil {
+			t.Errorf("read: %s", err)
+			return
+		}
+		expected := `raw broadcast`
+		if string(message) != expected {
+			t.Errorf("Recieved: '%s' wanted '%s'", string(message), expected)
+		}
+	})
 }
 
 func TestRoomRemove(t *testing.T) {
@@ -89,4 +129,60 @@ func TestRoomRemove(t *testing.T) {
 	if l := len(c1.Rooms); l != 0 {
 		t.Errorf("client1 should have 0 rooms, has %d", l)
 	}
+}
+
+func TestRoomAdd(t *testing.T) {
+	c1 := &SocketClient{ID: 1}
+	room := NewChannelRoom("test-room")
+	room.Add(c1)
+	if len(room.Clients) != 1 {
+		t.Errorf("room should have 1 client, has %d", len(room.Clients))
+	}
+}
+
+func emptyChannelHandler(client *SocketClient, e ChannelEvent) {}
+
+func TestCreateRoomFromChannel(t *testing.T) {
+	ch := NewChannel(emptyChannelHandler)
+	ch.Room("test")
+	if l := len(ch.Rooms); l != 1 {
+		t.Errorf("channel should have 1 room, has %d", l)
+	}
+	ch.Room("test")
+	if l := len(ch.Rooms); l != 1 {
+		t.Errorf("channel should have 1 room, has %d", l)
+	}
+}
+
+func TestChannelEvents(t *testing.T) {
+	evt := ChannelEvent{
+		Event: ChannelEvents.Message,
+		Data:  []byte(`{"user": { "name": "Alice" }}`),
+	}
+	t.Run("get", func(t *testing.T) {
+		name := evt.Get("user.name").String()
+		if name != "Alice" {
+			t.Errorf("value at user.name should be 'Alice', got %s", name)
+		}
+	})
+	t.Run("extract", func(t *testing.T) {
+		v := struct {
+			User struct {
+				Name string `json:"name"`
+			} `json:"user"`
+		}{}
+		evt.Extract(&v)
+		if v.User.Name != "Alice" {
+			t.Errorf("value at user.name should be 'Alice', got %s", v.User.Name)
+		}
+	})
+	t.Run("extractat", func(t *testing.T) {
+		v := struct {
+			Name string `json:"name"`
+		}{}
+		evt.ExtractAt("user", &v)
+		if v.Name != "Alice" {
+			t.Errorf("value at user.name should be 'Alice', got %s", v.Name)
+		}
+	})
 }

@@ -10,6 +10,7 @@ import (
 // Scope - A group of routes and subgroups used to represent the routing
 // structure for the serve.r
 type Scope struct {
+	server        *Server
 	Path          RoutePath
 	Scopes        []*Scope
 	Routes        []Route
@@ -29,6 +30,7 @@ func newScope(path string) *Scope {
 // Scope - Creates a new sub scope
 func (s *Scope) Scope(path string) *Scope {
 	ss := newScope(path)
+	ss.server = s.server
 	s.Scopes = append(s.Scopes, ss)
 	return ss
 }
@@ -190,4 +192,17 @@ func fixPath(p string) string {
 		return "/" + p
 	}
 	return p
+}
+
+// Channel creates a new channel route
+func (s *Scope) Channel(name, path string, h ChannelHandler) {
+	ch := NewChannel(h)
+	ch.Name = name
+	s.server.Channels[name] = ch
+	ch.Open()
+	r := &ChannelRoute{
+		Path:    RoutePath(path),
+		Channel: ch,
+	}
+	s.Routes = append(s.Routes, r)
 }

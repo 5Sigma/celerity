@@ -16,15 +16,20 @@ type Server struct {
 	Router          *Router
 	ResponseAdapter ResponseAdapter
 	Log             *vox.Vox
+	Channels        map[string]*Channel
 }
 
 // NewServer - Initialize a new server
 func NewServer() *Server {
-	return &Server{
+	router := NewRouter()
+	svr := &Server{
 		ResponseAdapter: &JSONResponseAdapter{},
-		Router:          NewRouter(),
+		Router:          router,
 		Log:             vox.New(),
+		Channels:        map[string]*Channel{},
 	}
+	router.Root.server = svr
+	return svr
 }
 
 func (s *Server) serveFile(w http.ResponseWriter, resp *Response) {
@@ -46,12 +51,19 @@ func (s *Server) serveFile(w http.ResponseWriter, resp *Response) {
 	f.Read(fileHeader)
 	fstat, err := f.Stat()
 	if err != nil {
-
+		w.WriteHeader(500)
+		w.Write([]byte(err.Error()))
+		return
 	}
 	fsize := strconv.FormatInt(fstat.Size(), 10)
 	fname := filepath.Base(resp.Filepath)
 	contentType := http.DetectContentType(fileHeader)
-	w.Header().Set("Content-Disposition", "attachment; filename="+fname)
+	switch filepath.Ext(fname) {
+	case ".css":
+		contentType = "text/css"
+	}
+
+	// w.Header().Set("Content-Disposition", "attachment; filename="+fname)
 	w.Header().Set("Content-Type", contentType)
 	w.Header().Set("Content-Length", fsize)
 	f.Seek(0, 0)
@@ -61,6 +73,8 @@ func (s *Server) serveFile(w http.ResponseWriter, resp *Response) {
 // ServeHTTP - Serves the HTTP request. Complies with http.Handler interface
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c := RequestContext(r)
+	c.Server = s
+	c.Writer = w
 	c.Log = s.Log
 	c.SetQueryParamsFromURL(r.URL)
 	resp := s.Router.Handle(c, r)
@@ -72,6 +86,8 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch true {
+	case resp.Handled:
+		return
 	case resp.IsFile():
 		s.serveFile(w, &resp)
 	case resp.IsRaw():
@@ -105,7 +121,9 @@ func (s *Server) Start(host string) error {
 
 // Scope creates a new scope from the root scope
 func (s *Server) Scope(path string) *Scope {
-	return s.Router.Root.Scope(path)
+	ss := s.Router.Root.Scope(path)
+	ss.server = s
+	return ss
 }
 
 // ServePath serves a path of static files rooted at the path given
@@ -116,6 +134,11 @@ func (s *Server) ServePath(path, rootpath string) {
 // ServeFile serves a static file at a given path
 func (s *Server) ServeFile(path, rootpath string) {
 	s.Router.Root.ServeFile(path, rootpath)
+}
+
+// Channel creates a socket channel at the given path
+func (s *Server) Channel(name, path string, h ChannelHandler) {
+	s.Router.Root.Channel(name, path, h)
 }
 
 // Route - Set a route on the root scope.

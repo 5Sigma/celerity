@@ -15,6 +15,7 @@ type Response struct {
 	Filepath   string
 	Fileroot   string
 	raw        []byte
+	Handled    bool
 }
 
 // NewResponse - Create a new response object

@@ -297,6 +297,13 @@ func TestServePath(t *testing.T) {
 			t.Errorf("fileroot not correct: %s", r.Fileroot)
 		}
 	})
+
+	t.Run("root without file", func(t *testing.T) {
+		req, _ := http.NewRequest("GET", "http://example.com/test/test.txt", nil)
+		if s.Match(req, "/") {
+			t.Error("should not match non existing file at root")
+		}
+	})
 }
 
 func TestFixPath(t *testing.T) {

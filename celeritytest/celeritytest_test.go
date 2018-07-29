@@ -48,6 +48,81 @@ func TestPost(t *testing.T) {
 	}
 }
 
+func TestPut(t *testing.T) {
+	s := celerity.New()
+	s.Route(celerity.PUT, "/foo", func(c celerity.Context) celerity.Response {
+		req := struct {
+			Param1 string `json:"param1"`
+		}{}
+		c.Extract(&req)
+		return c.R(req)
+	})
+
+	payload := []byte(`
+		{
+			"param1": "123"
+		}
+	`)
+	r, err := Put(s, "/foo", payload)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	if ok, v := r.AssertString("data.param1", "123"); !ok {
+		t.Errorf("param1 was %s", v)
+	}
+}
+
+func TestPatch(t *testing.T) {
+	s := celerity.New()
+	s.Route(celerity.PATCH, "/foo", func(c celerity.Context) celerity.Response {
+		req := struct {
+			Param1 string `json:"param1"`
+		}{}
+		c.Extract(&req)
+		return c.R(req)
+	})
+
+	payload := []byte(`
+		{
+			"param1": "123"
+		}
+	`)
+	r, err := Patch(s, "/foo", payload)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	if ok, v := r.AssertString("data.param1", "123"); !ok {
+		t.Errorf("param1 was %s", v)
+	}
+}
+
+func TestDelete(t *testing.T) {
+	s := celerity.New()
+	s.Route(celerity.DELETE, "/foo", func(c celerity.Context) celerity.Response {
+		req := struct {
+			Param1 string `json:"param1"`
+		}{}
+		c.Extract(&req)
+		return c.R(req)
+	})
+
+	payload := []byte(`
+		{
+			"param1": "123"
+		}
+	`)
+	r, err := Delete(s, "/foo", payload)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	if ok, v := r.AssertString("data.param1", "123"); !ok {
+		t.Errorf("param1 was %s", v)
+	}
+}
+
 func TestRequest(t *testing.T) {
 	s := celerity.New()
 	s.Route(celerity.POST, "/foo", func(c celerity.Context) celerity.Response {

@@ -106,6 +106,7 @@ func NewChannel(h ChannelHandler) *Channel {
 		message:    make(chan *SocketMessage),
 		Handler:    h,
 		upgrader:   upgrader,
+		Rooms:      map[string]*ChannelRoom{},
 	}
 }
 
@@ -141,6 +142,9 @@ func (ch *Channel) Open() {
 				if _, ok := ch.Clients[client]; ok {
 					delete(ch.Clients, client)
 					close(client.send)
+				}
+				for _, r := range client.Rooms {
+					r.Remove(client)
 				}
 
 			case msg := <-ch.message:
@@ -221,7 +225,7 @@ func (c *SocketClient) SendString(msg string) {
 
 // SendRaw sends bytes to the client
 func (c *SocketClient) SendRaw(msg []byte) {
-	c.send <- msg
+	c.send <- append(msg)
 }
 
 func (c *SocketClient) readLoop() {

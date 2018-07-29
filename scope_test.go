@@ -305,3 +305,24 @@ func TestFixPath(t *testing.T) {
 		t.Errorf("path not prepended with slash: %s", fixPath(p))
 	}
 }
+
+func TestDeepestRoutePriority(t *testing.T) {
+	s := newScope("/")
+	s.GET("/*", func(c Context) Response {
+		return c.R("catch")
+	})
+	ss := s.Scope("/api")
+	ss.GET("/endpoint", func(c Context) Response {
+		return c.R("api")
+	})
+	req, err := http.NewRequest("GET", "http://example.com/api/endpoint", nil)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	c := RequestContext(req)
+	r := s.Handle(c)
+	rStr := r.Data.(string)
+	if rStr != "api" {
+		t.Errorf("should get api response, got %s", rStr)
+	}
+}

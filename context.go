@@ -31,6 +31,7 @@ type Context struct {
 	ScopedPath  string
 	data        []byte
 	Writer      http.ResponseWriter
+	Server      *Server
 }
 
 // NewContext Create a new context object

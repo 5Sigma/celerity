@@ -30,6 +30,7 @@ func newScope(path string) *Scope {
 // Scope - Creates a new sub scope
 func (s *Scope) Scope(path string) *Scope {
 	ss := newScope(path)
+	ss.server = s.server
 	s.Scopes = append(s.Scopes, ss)
 	return ss
 }
@@ -194,8 +195,10 @@ func fixPath(p string) string {
 }
 
 // Channel creates a new channel route
-func (s *Scope) Channel(path string, h ChannelHandler) {
+func (s *Scope) Channel(name, path string, h ChannelHandler) {
 	ch := NewChannel(h)
+	ch.Name = name
+	s.server.Channels[name] = ch
 	ch.Open()
 	r := &ChannelRoute{
 		Path:    RoutePath(path),

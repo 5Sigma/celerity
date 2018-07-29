@@ -1,6 +1,7 @@
 package celerity
 
 import (
+	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"testing"
@@ -11,22 +12,33 @@ import (
 func TestSockets(t *testing.T) {
 	server := New()
 
-	server.Router.Root.Channel("/welcome", func(client *SocketClient, e ChannelEvent) {
-		if e.Event == ChannelEvents.Connect {
-			client.SendString("hello client")
-		}
-	})
+	server.Router.Root.Channel("welcome", "/welcome",
+		func(client *SocketClient, e ChannelEvent) {
+			if e.Event == ChannelEvents.Connect {
+				client.SendString("hello client")
+			}
+		})
 
-	server.Router.Root.Channel("/echo", func(client *SocketClient, e ChannelEvent) {
+	server.Channel("echo", "/echo", func(client *SocketClient, e ChannelEvent) {
 		client.SendRaw(e.Data)
 	})
 
-	server.Router.Root.Channel("/broadcast", func(client *SocketClient, e ChannelEvent) {
-		client.Channel().Broadcast(map[string]string{"test": "test"})
-	})
+	server.Channel("broadcast", "/broadcast",
+		func(client *SocketClient, e ChannelEvent) {
+			client.Channel().Broadcast(map[string]string{"test": "test"})
+		})
 
-	server.Router.Root.Channel("/broadcast-raw", func(client *SocketClient, e ChannelEvent) {
-		client.Channel().BroadcastRaw([]byte("raw broadcast"))
+	server.Channel("raw", "/broadcast-raw",
+		func(client *SocketClient, e ChannelEvent) {
+			client.Channel().BroadcastRaw([]byte("raw broadcast"))
+		})
+
+	server.Channel("empty", "/empty",
+		func(client *SocketClient, e ChannelEvent) {})
+
+	server.GET("/send", func(c Context) Response {
+		c.Server.Channels["empty"].BroadcastRaw([]byte("test through another request"))
+		return c.R("ok")
 	})
 
 	ts := httptest.NewServer(server)
@@ -94,6 +106,7 @@ func TestSockets(t *testing.T) {
 			t.Errorf("Recieved: '%s' wanted '%s'", string(message), expected)
 		}
 	})
+
 	t.Run("broadcast-raw", func(t *testing.T) {
 		c, _, err := websocket.DefaultDialer.Dial(tsURL.String()+"/broadcast-raw", nil)
 		if err != nil {
@@ -107,6 +120,26 @@ func TestSockets(t *testing.T) {
 			return
 		}
 		expected := `raw broadcast`
+		if string(message) != expected {
+			t.Errorf("Recieved: '%s' wanted '%s'", string(message), expected)
+		}
+	})
+
+	t.Run("through endpoint", func(t *testing.T) {
+		c, _, err := websocket.DefaultDialer.Dial(tsURL.String()+"/empty", nil)
+		if err != nil {
+			t.Fatal("dial:", err)
+		}
+		defer c.Close()
+
+		http.Get(ts.URL + "/send")
+
+		_, message, err := c.ReadMessage()
+		if err != nil {
+			t.Errorf("read: %s", err)
+			return
+		}
+		expected := `test through another request`
 		if string(message) != expected {
 			t.Errorf("Recieved: '%s' wanted '%s'", string(message), expected)
 		}

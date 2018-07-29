@@ -83,6 +83,7 @@ func (ce *ChannelEvent) ExtractAt(path string, obj interface{}) error {
 
 // Channel segments communication into a single context
 type Channel struct {
+	Name       string
 	Clients    map[*SocketClient]bool
 	connect    chan *SocketClient
 	disconnect chan *SocketClient
@@ -176,7 +177,8 @@ func (ch *Channel) BroadcastRaw(msg []byte) {
 	}
 }
 
-// SocketClient Description
+// SocketClient wraps an actual websocket connection. It provides the
+// request context as well as helper functions for sending data.
 type SocketClient struct {
 	Context Context
 	ID      uint64

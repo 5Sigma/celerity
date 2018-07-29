@@ -10,6 +10,7 @@ import (
 // Scope - A group of routes and subgroups used to represent the routing
 // structure for the serve.r
 type Scope struct {
+	server        *Server
 	Path          RoutePath
 	Scopes        []*Scope
 	Routes        []Route

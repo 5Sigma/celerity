@@ -53,7 +53,12 @@ func (s *Server) serveFile(w http.ResponseWriter, resp *Response) {
 	fsize := strconv.FormatInt(fstat.Size(), 10)
 	fname := filepath.Base(resp.Filepath)
 	contentType := http.DetectContentType(fileHeader)
-	w.Header().Set("Content-Disposition", "attachment; filename="+fname)
+	switch filepath.Ext(fname) {
+	case ".css":
+		contentType = "text/css"
+	}
+
+	// w.Header().Set("Content-Disposition", "attachment; filename="+fname)
 	w.Header().Set("Content-Type", contentType)
 	w.Header().Set("Content-Length", fsize)
 	f.Seek(0, 0)
@@ -121,6 +126,11 @@ func (s *Server) ServePath(path, rootpath string) {
 // ServeFile serves a static file at a given path
 func (s *Server) ServeFile(path, rootpath string) {
 	s.Router.Root.ServeFile(path, rootpath)
+}
+
+// Channel creates a socket channel at the given path
+func (s *Server) Channel(path string, h ChannelHandler) {
+	s.Router.Root.Channel(path, h)
 }
 
 // Route - Set a route on the root scope.

@@ -23,7 +23,7 @@ func NewResponse() Response {
 	return Response{
 		Meta:       map[string]interface{}{},
 		Header:     http.Header{},
-		StatusCode: 200,
+		StatusCode: -1,
 	}
 }
 

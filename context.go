@@ -81,9 +81,7 @@ func (c *Context) R(obj interface{}) Response {
 
 // Respond Respond with an object
 func (c *Context) Respond(obj interface{}) Response {
-	c.Response.StatusCode = 200
-	c.Response.Data = obj
-	return c.Response
+	return c.Status(-1, obj)
 }
 
 // F is an alias for the Fail function
@@ -104,11 +102,28 @@ func (c *Context) Body() []byte {
 	return c.data
 }
 
+// S is an alias for the Status function
+func (c *Context) S(status int, obj interface{}) Response {
+	return c.Status(status, obj)
+}
+
+// Status is used to set a status code for a response regardless of if it
+// is for a successful or unsuccessful response
+func (c *Context) Status(status int, obj interface{}) Response {
+	c.Response.StatusCode = status
+	c.SetDefaults()
+	c.Response.Data = obj
+	return c.Response
+}
+
 // Fail is used for unrecoverable and internal errors. In a production
 // environment the error is not passed to the client.
 // message.
 func (c *Context) Fail(err error) Response {
-	c.Response.StatusCode = 500
+	// If the user has specified their own status code we don't want to override it.
+	if c.Response.StatusCode == -1 {
+		c.Response.StatusCode = 500
+	}
 	c.Response.Data = nil
 	if viper.GetString("env") == PROD {
 		c.Response.Error = errors.New("the request could not be processed")
@@ -124,7 +139,7 @@ func (c *Context) E(status int, err error) Response {
 	return c.Error(status, err)
 }
 
-// Error - Returns a erorr and outputs the passed error message.
+// Error - Returns a error and outputs the passed error message.
 func (c *Context) Error(status int, err error) Response {
 	c.Response.StatusCode = status
 	c.Response.Data = nil
@@ -134,6 +149,7 @@ func (c *Context) Error(status int, err error) Response {
 
 // File sets the response to output a file from a local filepath
 func (c *Context) File(fileroot, filepath string) Response {
+	c.SetDefaults()
 	c.Response.Filepath = filepath
 	c.Response.Fileroot = fileroot
 	return c.Response
@@ -142,8 +158,17 @@ func (c *Context) File(fileroot, filepath string) Response {
 // Raw returns a response configured to output a raw []byte resposne. This
 // resposne will also skip the response transformation adapter.
 func (c *Context) Raw(b []byte) Response {
+	c.SetDefaults()
 	c.Response.SetRaw(b)
 	return c.Response
+}
+
+// SetDefaults sets default values for the response, in the current case this is just a default status code.
+func (c *Context) SetDefaults() {
+	// If the user has specified their own status code we don't want to override it.
+	if c.Response.StatusCode == -1 {
+		c.Response.StatusCode = 200
+	}
 }
 
 // Extract - Unmarshal request data into a structure.

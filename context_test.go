@@ -41,6 +41,25 @@ func TestRespond(t *testing.T) {
 	}
 }
 
+func TestStatus(t *testing.T) {
+	c := NewContext()
+	data := map[string]string{"name": "jim"}
+	r := c.Status(201, data)
+	if r.StatusCode != 201 {
+		t.Errorf("Status code not set to 201 (%d)", r.StatusCode)
+	}
+	if r.Error != nil {
+		t.Errorf("Error not empty: %s", r.Error.Error())
+	}
+	if v, ok := r.Data.(map[string]string); ok {
+		if v["name"] != "jim" {
+			t.Errorf("name not set correctly in data: %s", v["name"])
+		}
+	} else {
+		t.Error("response data not properly set")
+	}
+}
+
 func TestFail(t *testing.T) {
 	c := NewContext()
 	r := c.Fail(errors.New("some error"))

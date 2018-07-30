@@ -297,11 +297,39 @@ func TestServePath(t *testing.T) {
 			t.Errorf("fileroot not correct: %s", r.Fileroot)
 		}
 	})
+
+	t.Run("root without file", func(t *testing.T) {
+		req, _ := http.NewRequest("GET", "http://example.com/test/test.txt", nil)
+		if s.Match(req, "/") {
+			t.Error("should not match non existing file at root")
+		}
+	})
 }
 
 func TestFixPath(t *testing.T) {
 	p := "test"
 	if fixPath(p) != "/test" {
 		t.Errorf("path not prepended with slash: %s", fixPath(p))
+	}
+}
+
+func TestDeepestRoutePriority(t *testing.T) {
+	s := newScope("/")
+	s.GET("/*", func(c Context) Response {
+		return c.R("catch")
+	})
+	ss := s.Scope("/api")
+	ss.GET("/endpoint", func(c Context) Response {
+		return c.R("api")
+	})
+	req, err := http.NewRequest("GET", "http://example.com/api/endpoint", nil)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	c := RequestContext(req)
+	r := s.Handle(c)
+	rStr := r.Data.(string)
+	if rStr != "api" {
+		t.Errorf("should get api response, got %s", rStr)
 	}
 }

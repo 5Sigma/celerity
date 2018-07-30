@@ -89,8 +89,15 @@ type LocalPathRoute struct {
 // Match checks if a file exists under the local path
 func (l *LocalPathRoute) Match(method string, path string) (bool, string) {
 	fs := FSAdapter.RootPath(l.LocalPath)
+	if len(path) < len(l.Path) {
+		return false, path
+	}
 	fname := "/" + path[len(l.Path):]
-	if _, err := fs.Stat(fname); os.IsNotExist(err) {
+	stat, err := fs.Stat(fname)
+	if err != nil {
+		return false, path
+	}
+	if stat.Mode().IsDir() {
 		return false, path
 	}
 	return true, ""

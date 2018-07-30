@@ -140,6 +140,12 @@ func (s *Scope) handleWithMiddleware(c Context, middleware []MiddlewareHandler) 
 
 	ph := func(c Context) Response {
 
+		for _, ss := range s.Scopes {
+			if ss.Match(c.Request, c.ScopedPath) {
+				return ss.handleWithMiddleware(c, middleware)
+			}
+		}
+
 		for _, r := range s.Routes {
 			if ok, _ := r.Match(c.Request.Method, c.ScopedPath); ok {
 				c.SetParams(r.RoutePath().GetURLParams(c.Request.URL.Path))
@@ -149,11 +155,6 @@ func (s *Scope) handleWithMiddleware(c Context, middleware []MiddlewareHandler) 
 					h = s.Middleware[i-1](h)
 				}
 				return h(c)
-			}
-		}
-		for _, ss := range s.Scopes {
-			if ss.Match(c.Request, c.ScopedPath) {
-				return ss.handleWithMiddleware(c, middleware)
 			}
 		}
 

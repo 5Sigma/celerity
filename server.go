@@ -4,9 +4,6 @@ import (
 	"bytes"
 	"io"
 	"net/http"
-	"os"
-	"path/filepath"
-	"strconv"
 
 	"github.com/5Sigma/vox"
 )
@@ -32,44 +29,6 @@ func NewServer() *Server {
 	return svr
 }
 
-func (s *Server) serveFile(w http.ResponseWriter, resp *Response) {
-	fs := FSAdapter.RootPath(resp.Fileroot)
-	f, err := fs.Open(resp.Filepath)
-	if os.IsNotExist(err) {
-		w.WriteHeader(404)
-		w.Write([]byte("The file does not exists"))
-		return
-
-	}
-	if err != nil {
-		w.WriteHeader(500)
-		w.Write([]byte(err.Error()))
-		return
-	}
-
-	fileHeader := make([]byte, 512)
-	f.Read(fileHeader)
-	fstat, err := f.Stat()
-	if err != nil {
-		w.WriteHeader(500)
-		w.Write([]byte(err.Error()))
-		return
-	}
-	fsize := strconv.FormatInt(fstat.Size(), 10)
-	fname := filepath.Base(resp.Filepath)
-	contentType := http.DetectContentType(fileHeader)
-	switch filepath.Ext(fname) {
-	case ".css":
-		contentType = "text/css"
-	}
-
-	// w.Header().Set("Content-Disposition", "attachment; filename="+fname)
-	w.Header().Set("Content-Type", contentType)
-	w.Header().Set("Content-Length", fsize)
-	f.Seek(0, 0)
-	io.Copy(w, f)
-}
-
 // ServeHTTP - Serves the HTTP request. Complies with http.Handler interface
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c := RequestContext(r)
@@ -88,8 +47,6 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch true {
 	case resp.Handled:
 		return
-	case resp.IsFile():
-		s.serveFile(w, &resp)
 	case resp.IsRaw():
 		io.Copy(w, bytes.NewReader(resp.Raw()))
 	default:

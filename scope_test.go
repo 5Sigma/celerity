@@ -279,25 +279,6 @@ func TestServePath(t *testing.T) {
 	FSAdapter = adapter
 	afero.WriteFile(adapter.MEMFS, "/public/test.txt", []byte("public file"), 0755)
 	s.ServePath("/test", "/public")
-	t.Run("valid path", func(t *testing.T) {
-		req, err := http.NewRequest("GET", "http://example.com/test/test.txt", nil)
-		if err != nil {
-			t.Fatal(err.Error())
-		}
-		c := RequestContext(req)
-		r := s.Handle(c)
-		if r.StatusCode != 200 {
-			t.Errorf("status code should be 200: %d", r.StatusCode)
-		}
-		if r.Filepath != "/test.txt" {
-			t.Errorf("filepath not correct: %s", r.Filepath)
-		}
-
-		if r.Fileroot != "/public" {
-			t.Errorf("fileroot not correct: %s", r.Fileroot)
-		}
-	})
-
 	t.Run("root without file", func(t *testing.T) {
 		req, _ := http.NewRequest("GET", "http://example.com/test/test.txt", nil)
 		if s.Match(req, "/") {

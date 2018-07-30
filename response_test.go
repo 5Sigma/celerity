@@ -25,14 +25,6 @@ func TestNewErrorResponse(t *testing.T) {
 	}
 }
 
-func TestIsFile(t *testing.T) {
-	r := NewResponse()
-	r.Filepath = "/test.txt"
-	if !r.IsFile() {
-		t.Error("should return true")
-	}
-}
-
 func TestRaw(t *testing.T) {
 	r := NewResponse()
 	if r.IsRaw() {

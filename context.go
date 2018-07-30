@@ -132,13 +132,6 @@ func (c *Context) Error(status int, err error) Response {
 	return c.Response
 }
 
-// File sets the response to output a file from a local filepath
-func (c *Context) File(fileroot, filepath string) Response {
-	c.Response.Filepath = filepath
-	c.Response.Fileroot = fileroot
-	return c.Response
-}
-
 // Raw returns a response configured to output a raw []byte resposne. This
 // resposne will also skip the response transformation adapter.
 func (c *Context) Raw(b []byte) Response {

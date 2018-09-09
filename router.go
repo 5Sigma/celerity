@@ -73,6 +73,10 @@ func (rp RoutePath) Match(path string) (bool, string) {
 
 // GetURLParams - Returns a map of url param/values based on the path given.
 func (rp RoutePath) GetURLParams(path string) map[string]string {
+	println(path)
+	if path[0] != '/' {
+		path = "/" + path
+	}
 	params := map[string]string{}
 	pathTokens := strings.Split(path, "/")
 	rpTokens := strings.Split(string(rp), "/")

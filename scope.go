@@ -148,7 +148,7 @@ func (s *Scope) handleWithMiddleware(c Context, middleware []MiddlewareHandler) 
 
 		for _, r := range s.Routes {
 			if ok, _ := r.Match(c.Request.Method, c.ScopedPath); ok {
-				c.SetParams(r.RoutePath().GetURLParams(c.Request.URL.Path))
+				c.SetParams(r.RoutePath().GetURLParams(c.ScopedPath))
 				var h RouteHandler
 				h = r.Handle
 				for i := len(s.Middleware); i > 0; i-- {

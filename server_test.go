@@ -56,40 +56,80 @@ func TestServeHTTP(t *testing.T) {
 }
 
 func TestURLParamHandling(t *testing.T) {
-	server := New()
-	server.Route("GET", "/foo/:id", func(c Context) Response {
-		return c.R(map[string]interface{}{"id": c.URLParams.Int("id")})
+	t.Run("root", func(t *testing.T) {
+		server := New()
+		server.Route("GET", "/foo/:id", func(c Context) Response {
+			return c.R(map[string]interface{}{"id": c.URLParams.Int("id")})
+		})
+
+		ts := httptest.NewServer(server)
+		defer ts.Close()
+
+		res, err := http.Get(ts.URL + "/foo/13")
+		if err != nil {
+			t.Errorf("Error requesting url: %s", err.Error())
+		}
+
+		defer res.Body.Close()
+		bbody, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			t.Errorf("Error reading response: %s", err.Error())
+		}
+
+		jsRes := struct {
+			Data struct {
+				ID int `json:"id" validate:"eq=13"`
+			}
+		}{}
+
+		err = json.Unmarshal(bbody, &jsRes)
+		if err != nil {
+			t.Error(err.Error())
+			return
+		}
+
+		if err := validator.New().Struct(jsRes); err != nil {
+			t.Error(err.Error())
+		}
 	})
 
-	ts := httptest.NewServer(server)
-	defer ts.Close()
+	t.Run("scoped", func(t *testing.T) {
+		server := New()
+		scope := server.Scope("/api")
+		scope.GET("/foo/:id", func(c Context) Response {
+			return c.R(map[string]interface{}{"id": c.URLParams.Int("id")})
+		})
 
-	res, err := http.Get(ts.URL + "/foo/13")
-	if err != nil {
-		t.Errorf("Error requesting url: %s", err.Error())
-	}
+		ts := httptest.NewServer(server)
+		defer ts.Close()
 
-	defer res.Body.Close()
-	bbody, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		t.Errorf("Error reading response: %s", err.Error())
-	}
-
-	jsRes := struct {
-		Data struct {
-			ID int `json:"id" validate:"eq=13"`
+		res, err := http.Get(ts.URL + "/api/foo/13")
+		if err != nil {
+			t.Errorf("Error requesting url: %s", err.Error())
 		}
-	}{}
 
-	err = json.Unmarshal(bbody, &jsRes)
-	if err != nil {
-		t.Error(err.Error())
-		return
-	}
+		defer res.Body.Close()
+		bbody, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			t.Errorf("Error reading response: %s", err.Error())
+		}
 
-	if err := validator.New().Struct(jsRes); err != nil {
-		t.Error(err.Error())
-	}
+		jsRes := struct {
+			Data struct {
+				ID int `json:"id" validate:"eq=13"`
+			}
+		}{}
+
+		err = json.Unmarshal(bbody, &jsRes)
+		if err != nil {
+			t.Error(err.Error())
+			return
+		}
+
+		if err := validator.New().Struct(jsRes); err != nil {
+			t.Error(err.Error())
+		}
+	})
 }
 
 func TestQueryParamHandling(t *testing.T) {

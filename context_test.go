@@ -137,3 +137,26 @@ func TestBody(t *testing.T) {
 		t.Errorf("bar value not found: %s", c.Body())
 	}
 }
+
+func TestChainResponses(t *testing.T) {
+	c := NewContext()
+	data := map[string]string{"name": "jim"}
+	r := c.Respond(data).Status(201).MetaValue("test", "123")
+	if r.StatusCode != 201 {
+		t.Errorf("Status code not set to 201 (%d)", r.StatusCode)
+	}
+	if r.Error != nil {
+		t.Errorf("Error not empty: %s", r.Error.Error())
+	}
+	if v, ok := r.Data.(map[string]string); ok {
+		if v["name"] != "jim" {
+			t.Errorf("name not set correctly in data: %s", v["name"])
+		}
+	} else {
+		t.Error("response data not properly set")
+	}
+
+	if r.Meta["test"].(string) != "123" {
+		t.Error("meta not properly set")
+	}
+}

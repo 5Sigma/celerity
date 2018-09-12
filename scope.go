@@ -31,6 +31,7 @@ func newScope(path string) *Scope {
 func (s *Scope) Scope(path string) *Scope {
 	ss := newScope(path)
 	ss.server = s.server
+	ss.Middleware = s.Middleware
 	s.Scopes = append(s.Scopes, ss)
 	return ss
 }

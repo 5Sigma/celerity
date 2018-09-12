@@ -73,7 +73,6 @@ func (rp RoutePath) Match(path string) (bool, string) {
 
 // GetURLParams - Returns a map of url param/values based on the path given.
 func (rp RoutePath) GetURLParams(path string) map[string]string {
-	println(path)
 	if path[0] != '/' {
 		path = "/" + path
 	}
@@ -157,7 +156,7 @@ func (l *LocalFileRoute) Handle(c Context) Response {
 	fpath := filepath.Dir(l.LocalPath)
 
 	serveFile(c.Writer, fpath, fname)
-	return Response{Handled: true}
+	return c.Handled()
 }
 
 // RoutePath returns the route path for the route.
@@ -195,7 +194,7 @@ func (l *LocalPathRoute) Handle(c Context) Response {
 	fname := c.ScopedPath[len(l.Path):]
 	fpath := l.LocalPath
 	serveFile(c.Writer, fpath, fname)
-	return Response{Handled: true}
+	return c.Handled()
 }
 
 // RoutePath returns the routepath for the route

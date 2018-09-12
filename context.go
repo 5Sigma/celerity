@@ -101,6 +101,16 @@ func (c *Context) F(err error) Response {
 	return c.Fail(err)
 }
 
+// Handled marks the response as externally handled this will cause it to not be
+// further processed by the framework so it can be fully processed by the route
+// handler or middleware. This will also clear any values from the context's
+// response object and reset the status code to 200.
+func (c *Context) Handled() Response {
+	c.Response = NewResponse()
+	c.Response.Handled = true
+	return c.Response
+}
+
 // Body returns the request body
 func (c *Context) Body() []byte {
 	if len(c.data) == 0 {

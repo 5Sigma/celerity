@@ -30,12 +30,10 @@ type RequestLoggerData struct {
 // NewLoggerConfig creates a default configuration for RequestLoggerConfig.
 func NewLoggerConfig() RequestLoggerConfig {
 	return RequestLoggerConfig{
-		ConsoleTemplate: `
-{{ .C.RequestID }} - [{{.Now.Format "1/2/2006 15:04:05"}}] - {{ .C.Request.Method }} {{.URL.Path}} ({{ .Duration }}) - {{ .R.StatusCode }}  {{ .R.StatusText }}
-{{ if eq .R.Success false -}}
+		ConsoleTemplate: `{{ .C.RequestID }} - [{{.Now.Format "1/2/2006 15:04:05"}}] - {{ .C.Request.Method }} {{.URL.Path}} ({{ .Duration }}) - {{ .R.StatusCode }}  {{ .R.StatusText -}}
+{{ if eq .R.Success false }}
 	ERROR: {{ .R.Error }}
-{{- end }}
-`,
+{{- end }}`,
 	}
 }
 

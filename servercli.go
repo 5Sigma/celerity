@@ -73,9 +73,11 @@ to quickly create a Cobra application.`,
 		Long:  `Prints a list of all registered routes in the application.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			server := onRun()
-			vox.Println("All server routes:\n")
+			vox.Println("All server routes:")
+			vox.Println("")
 			printScope(server.Router.Root)
-			vox.Println("\n")
+			vox.Println("")
+			vox.Println("")
 		},
 	}
 	rootCmd.AddCommand(routesCmd)

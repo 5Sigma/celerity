@@ -59,3 +59,31 @@ func (r *Response) SetRaw(b []byte) {
 func (r *Response) Raw() []byte {
 	return r.raw
 }
+
+// Status sets the status code for the response
+func (r Response) Status(code int) Response {
+	r.StatusCode = code
+	return r
+}
+
+// Respond sets teh response data
+func (r Response) Respond(data interface{}) Response {
+	r.Data = data
+	return r
+}
+
+// R aliases Respond
+func (r Response) R(data interface{}) Response {
+	return r.Respond(data)
+}
+
+// S aliases Status
+func (r Response) S(code int) Response {
+	return r.Status(code)
+}
+
+// MetaValue sets the metadata key for the response
+func (r Response) MetaValue(k string, v interface{}) Response {
+	r.Meta[k] = v
+	return r
+}

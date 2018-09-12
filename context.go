@@ -81,9 +81,19 @@ func (c *Context) R(obj interface{}) Response {
 
 // Respond Respond with an object
 func (c *Context) Respond(obj interface{}) Response {
-	c.Response.StatusCode = 200
 	c.Response.Data = obj
 	return c.Response
+}
+
+// Status returns a response with the set status
+func (c *Context) Status(code int) Response {
+	c.Response.StatusCode = code
+	return c.Response
+}
+
+// S aliases Status
+func (c *Context) S(code int) Response {
+	return c.Status(code)
 }
 
 // F is an alias for the Fail function

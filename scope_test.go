@@ -213,22 +213,43 @@ func TestMiddleware(t *testing.T) {
 			return next(c)
 		}
 	})
-	root.Route(GET, "/middleware", func(c Context) Response {
-		if v, ok := c.Get("prop").(string); ok {
-			return c.R(v)
+	t.Run("root middleware", func(t *testing.T) {
+		root.Route(GET, "/middleware", func(c Context) Response {
+			if v, ok := c.Get("prop").(string); ok {
+				return c.R(v)
+			}
+			return c.R("bad")
+		})
+		req, _ := http.NewRequest(GET, "/middleware", nil)
+		c := RequestContext(req)
+		r := root.Handle(c)
+		v, ok := r.Data.(string)
+		if !ok {
+			t.Error("Data result incorrect type")
+			return
+		} else if v != "123" {
+			t.Error("Data result not correct")
 		}
-		return c.R("bad")
 	})
-	req, _ := http.NewRequest(GET, "/middleware", nil)
-	c := RequestContext(req)
-	r := root.Handle(c)
-	v, ok := r.Data.(string)
-	if !ok {
-		t.Error("Data result incorrect type")
-		return
-	} else if v != "123" {
-		t.Error("Data result not correct")
-	}
+	t.Run("middelware inheritance", func(t *testing.T) {
+		sub := root.Scope("/sub")
+		sub.Route(GET, "/middleware", func(c Context) Response {
+			if v, ok := c.Get("prop").(string); ok {
+				return c.R(v)
+			}
+			return c.R("bad")
+		})
+		req, _ := http.NewRequest(GET, "/sub/middleware", nil)
+		c := RequestContext(req)
+		r := root.Handle(c)
+		v, ok := r.Data.(string)
+		if !ok {
+			t.Error("Data result incorrect type")
+			return
+		} else if v != "123" {
+			t.Errorf("Data result not correct: %s", v)
+		}
+	})
 }
 
 func TestPre(t *testing.T) {
